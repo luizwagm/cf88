@@ -18,6 +18,22 @@ const ESTILOS = ["marca", "sublinhado", "riscado"] as const;
 const MAX_PONTOS = 4000 * 3;   // um traço muito longo ainda cabe
 const MAX_TRACOS_LOTE = 400;
 
+/* Id gerado no CLIENTE (para o caderno funcionar sem internet): aceito se
+   tiver a forma certa; senão o servidor sorteia o seu. Reenviar a mesma
+   operação (fila offline) encontra o id já gravado e não duplica. */
+function idDoCliente(o: Record<string, unknown>): string {
+  const v = o["id"];
+  if (v === undefined || v === null || v === "") return novoId();
+  if (typeof v !== "string" || !/^[A-Za-z0-9_-]{16,40}$/.test(v)) throw erroValidacao("Campo id inválido.", { campo: "id" });
+  return v;
+}
+async function jaExiste(tabela: "tracos" | "marcacoes" | "notas", id: string, uid: string, q = banco()): Promise<boolean> {
+  const l = await q.get<{ usuario_id: string }>(`SELECT usuario_id FROM ${tabela} WHERE id = ?`, id);
+  if (!l) return false;
+  if (l.usuario_id !== uid) throw erroValidacao("Campo id já pertence a outro registro.", { campo: "id" });
+  return true;
+}
+
 function cor(o: Record<string, unknown>, campo = "cor"): string {
   const v = campoTexto(o, campo, { obrigatorio: true, max: 9 });
   if (!/^#[0-9a-fA-F]{6}$/.test(v)) throw erroValidacao(`Campo ${campo} deve ser uma cor #rrggbb.`, { campo });
@@ -85,7 +101,8 @@ export function registrarAnotacoes(r: Roteador): void {
         if (typeof item !== "object" || item === null) throw erroValidacao("Traço inválido.", { campo: "tracos" });
         const it = item as Record<string, unknown>;
         const d = dispositivoDaPagina(p.id, it);
-        const id = novoId();
+        const id = idDoCliente(it);
+        if (await jaExiste("tracos", id, uid, t)) { ids.push(id); continue; }
         await t.run(
           `INSERT INTO tracos (id, usuario_id, pagina_id, dispositivo_id, ferramenta, cor, largura, pontos, largura_ref, altura_ref, criado_em)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -139,11 +156,15 @@ export function registrarAnotacoes(r: Roteador): void {
     const fim = inteiro(o, "fim", { obrigatorio: true, min: 1 });
     const tamanho = d.dispositivo.texto.length;
     if (inicio >= fim || fim > tamanho) throw erroValidacao("Intervalo fora do texto do dispositivo.", { campo: "fim" });
-    const id = novoId();
+    const id = idDoCliente(o);
     const agora = agoraISO();
     const estilo = opcaoDe(o, "estilo", ESTILOS, "marca");
     const c = cor(o);
     const trecho = d.dispositivo.texto.slice(inicio, fim);
+    if (await jaExiste("marcacoes", id, ctx.sessao!.usuarioId)) {
+      const atual = await banco().get("SELECT id, dispositivo_id, inicio, fim, estilo, cor, trecho, criado_em FROM marcacoes WHERE id = ?", id);
+      return { status: 200, corpo: atual };
+    }
     await banco().run(
       "INSERT INTO marcacoes (id, usuario_id, pagina_id, dispositivo_id, inicio, fim, estilo, cor, trecho, criado_em) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       id, ctx.sessao!.usuarioId, p.id, d.dispositivo.id, inicio, fim, estilo, c, trecho, agora,
@@ -174,8 +195,12 @@ export function registrarAnotacoes(r: Roteador): void {
     const d = dispositivoDaPagina(p.id, o);
     const textoNota = campoTexto(o, "texto", { obrigatorio: true, max: 5000 });
     const c = cor(o);
-    const id = novoId();
+    const id = idDoCliente(o);
     const agora = agoraISO();
+    if (await jaExiste("notas", id, ctx.sessao!.usuarioId)) {
+      const atual = await banco().get("SELECT id, dispositivo_id, texto, cor, criado_em, atualizado_em FROM notas WHERE id = ?", id);
+      return { status: 200, corpo: atual };
+    }
     await banco().run(
       "INSERT INTO notas (id, usuario_id, pagina_id, dispositivo_id, texto, cor, criado_em, atualizado_em) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       id, ctx.sessao!.usuarioId, p.id, d.dispositivo.id, textoNota, c, agora, agora,

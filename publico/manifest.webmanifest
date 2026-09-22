@@ -1,0 +1,18 @@
+{
+  "name": "LA Carta — a Constituição como caderno",
+  "short_name": "LA Carta",
+  "description": "A Constituição de 1988 para estudar com caneta: marcar, escrever, anotar e ouvir — também sem internet.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8f4ea",
+  "theme_color": "#f8f4ea",
+  "categories": ["education", "books"],
+  "icons": [
+    { "src": "/icones/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icones/icone-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icones/icone-mascara-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

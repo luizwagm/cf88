@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.0 — 2026-09-22
+
+- **Aplicativo instalável (PWA)**: manifesto, ícones, service worker com a casca em cache
+  por versão e aviso de "versão nova — atualizar". Menu do topo ganhou "Instalar no
+  tablet" (usa o prompt do navegador; senão, instruções para Samsung Internet/Chrome).
+- **Funciona sem internet**: armazém local (IndexedDB) com texto, anotações, preferências
+  e resumo; "Baixar para usar sem internet" traz as 93 páginas e todas as anotações.
+  Toda escrita muda o espelho local na hora e entra numa fila persistente que sobe
+  quando a rede volta (ids nascem no cliente; o servidor ignora reenvio repetido).
+  Estante, revisão e busca têm versão local; salto por artigo funciona pelo sumário.
+- Chip de rede no topo ("Sem internet", "3 a enviar"); boot com a cópia local quando a
+  rede falta.
+- 6 provas novas (ids do cliente, reenvio, /sw.js, manifesto).
+
 ## 1.1.0 — 2026-09-22
 
 - Operação para cf88.projetos.luizaugust.me: `criar-site.sh` (vhost com noindex, freio no

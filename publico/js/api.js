@@ -1,6 +1,7 @@
 /* ==========================================================================
    api.js — cliente da API. Toda mutação leva o cabeçalho anti-CSRF; 401
-   derruba para a tela de login em vez de deixar a tela quebrar aos poucos.
+   derruba para a tela de login. Falha de REDE vira ErroApi com status 0:
+   é assim que o armazém distingue "sem internet" de "o servidor recusou".
    ========================================================================== */
 
 export class ErroApi extends Error {
@@ -14,18 +15,32 @@ export class ErroApi extends Error {
 let aoPerderSessao = () => {};
 export function definirQuedaDeSessao(fn) { aoPerderSessao = fn; }
 
+const TEMPO_LIMITE_MS = 12_000;
+
 async function requisicao(metodo, caminho, corpo, opcoes = {}) {
+  const controle = new AbortController();
+  const tempo = setTimeout(() => controle.abort(), opcoes.tempoLimite ?? TEMPO_LIMITE_MS);
   const init = {
     method: metodo,
     headers: { "X-Requisicao": "carta" },
     credentials: "same-origin",
+    signal: controle.signal,
   };
   if (opcoes.keepalive) init.keepalive = true;
   if (corpo !== undefined) {
     init.headers["Content-Type"] = "application/json";
     init.body = JSON.stringify(corpo);
   }
-  const resposta = await fetch(caminho, init);
+  let resposta;
+  try {
+    resposta = await fetch(caminho, init);
+  } catch (e) {
+    clearTimeout(tempo);
+    /* TypeError (sem rede) ou AbortError (demorou demais): para o caderno é a
+       mesma coisa — não há servidor agora. */
+    throw new ErroApi(0, e.name === "AbortError" ? "O servidor não respondeu a tempo." : "Sem internet.");
+  }
+  clearTimeout(tempo);
   const dados = await resposta.json().catch(() => ({}));
   if (resposta.status === 401 && caminho !== "/api/v1/entrar") {
     aoPerderSessao();
@@ -36,6 +51,7 @@ async function requisicao(metodo, caminho, corpo, opcoes = {}) {
 }
 
 export const api = {
+  requisicao,
   get: (caminho) => requisicao("GET", caminho),
   post: (caminho, corpo, opcoes) => requisicao("POST", caminho, corpo ?? {}, opcoes),
   put: (caminho, corpo) => requisicao("PUT", caminho, corpo ?? {}),

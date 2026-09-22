@@ -21,8 +21,9 @@
 const ALFA_MARCADOR = { clara: 0.85, escura: 0.32 };
 
 export class Tinta {
-  constructor({ folha, topo, aoGravar, aoApagar }) {
+  constructor({ folha, topo, aoGravar, aoApagar, gerarId }) {
     this.folha = folha;
+    this.gerarId = gerarId ?? (() => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2)));
     this.topo = topo;               // altura do cabeçalho fixo (px)
     this.aoGravar = aoGravar;       // (tracos[]) => Promise<ids[]>
     this.aoApagar = aoApagar;       // (ids[]) => Promise
@@ -202,7 +203,7 @@ export class Tinta {
       relativo.push(Math.round((t.pontos[i] - caixa.x) * 100) / 100, Math.round((t.pontos[i + 1] - caixa.y) * 100) / 100, Math.round(t.pontos[i + 2] * 100) / 100);
     }
     const traco = {
-      id: null, dispositivo_id: ancora.dataset.id, ferramenta: t.ferramenta, cor: t.cor, largura: t.largura,
+      id: this.gerarId(), dispositivo_id: ancora.dataset.id, ferramenta: t.ferramenta, cor: t.cor, largura: t.largura,
       pontos: relativo, largura_ref: Math.round(caixa.largura * 100) / 100, altura_ref: Math.round(caixa.altura * 100) / 100,
     };
     this.tracos.push(traco);
@@ -221,8 +222,8 @@ export class Tinta {
     if (!this.pendentes.length) return;
     const lote = this.pendentes.splice(0, this.pendentes.length);
     try {
-      const ids = await this.aoGravar(lote.map(({ id, ...resto }) => resto), final);
-      lote.forEach((t, i) => { t.id = ids[i] ?? null; });
+      const ids = await this.aoGravar(lote, final);
+      lote.forEach((t, i) => { t.id = ids[i] ?? t.id; });
       /* Traço apagado enquanto estava a caminho: apaga agora que tem id. */
       const orfaos = lote.filter((t) => t.id && !this.tracos.includes(t)).map((t) => t.id);
       if (orfaos.length) void this.aoApagar(orfaos);

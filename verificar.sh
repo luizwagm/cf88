@@ -24,7 +24,7 @@ if ! echo "$SAUDE" | grep -q '"ok":true'; then
 fi
 ok "no ar: $SAUDE"
 
-for P in / /estilo.css /js/app.js /js/leitor.js /js/tinta.js /js/voz.js /robots.txt; do
+for P in / /estilo.css /js/app.js /js/leitor.js /js/tinta.js /js/voz.js /js/armazem.js /robots.txt /sw.js /manifest.webmanifest /icones/icone-192.png; do
   C=$(cod "$U$P"); [ "$C" = "200" ] && ok "$P 200" || ruim "$P respondeu $C"
 done
 # O que NUNCA pode sair: por lugar, não por extensão.

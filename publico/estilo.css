@@ -149,6 +149,15 @@ label { display: flex; flex-direction: column; gap: .35rem; font-size: .86rem; c
 .dropdown a, .dropdown button.item { display: flex; align-items: center; gap: .6rem; width: 100%; text-align: left; padding: .6rem .8rem; border-radius: 9px; color: var(--tinta); border: 0; background: transparent; cursor: pointer; font-size: .93rem; }
 .dropdown a:hover, .dropdown button.item:hover { background: var(--papel-2); }
 .dropdown .perigo { color: var(--erro); }
+.dropdown .divisoria { height: 1px; background: var(--papel-3); margin: .3rem .4rem; }
+.dropdown button.item span { display: flex; flex-direction: column; line-height: 1.25; }
+.dropdown button.item small { color: var(--tinta-3); font-size: .74rem; }
+.chip-rede { height: 32px; padding: 0 .75rem; border-radius: 999px; border: 0; font-size: .78rem; font-weight: 700; cursor: pointer; white-space: nowrap; margin-right: .2rem; }
+.chip-rede.offline { background: var(--tinta); color: var(--papel); }
+.chip-rede.pendente { background: var(--ouro-suave); color: #8a6a17; }
+.progresso.baixa { height: 10px; margin: 1rem 0 .5rem; }
+.baixa-rotulo { margin: 0; color: var(--tinta-3); font-size: .86rem; min-height: 1.3em; }
+.instrucoes ol { padding-left: 1.3rem; line-height: 1.7; }
 .dropdown .rodape { padding: .5rem .8rem .3rem; color: var(--tinta-3); font-size: .74rem; border-top: 1px solid var(--papel-3); margin-top: .3rem; }
 
 /* Gaveta do sumário */
@@ -399,6 +408,8 @@ canvas.tinta.borracha { cursor: cell; }
 .toast { background: var(--tinta); color: var(--papel); padding: .6rem 1rem; border-radius: 999px; box-shadow: var(--sombra); font-size: .9rem; opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s; white-space: nowrap; }
 .toast.visivel { opacity: 1; transform: none; }
 .toast.erro { background: var(--erro); color: #fff; }
+.toast.acao { pointer-events: auto; display: flex; align-items: center; gap: .8rem; }
+.toast-botao { background: var(--ouro); color: var(--tinta); border: 0; border-radius: 999px; padding: .35rem .8rem; font-weight: 700; cursor: pointer; }
 #camada-modal { position: fixed; inset: 0; z-index: 80; display: none; place-items: center; background: rgba(29, 36, 51, .4); padding: 1rem; backdrop-filter: blur(3px); }
 #camada-modal.aberta { display: grid; }
 .modal { width: min(560px, 100%); max-height: 92vh; overflow: auto; background: #fff; border-radius: 18px; box-shadow: var(--sombra); animation: subir .28s cubic-bezier(.2, .7, .2, 1) both; }

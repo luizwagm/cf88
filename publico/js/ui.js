@@ -58,6 +58,8 @@ export function icone(nome, tamanho = 20) {
     seta: "M9 6l6 6-6 6",
     check: "M5 12l4.5 4.5L19 7",
     mais: "M12 5v14M5 12h14",
+    instalar: "M12 4v11M7 10l5 5 5-5M5 19h14",
+    baixar: "M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2M12 3v12M7.5 10.5L12 15l4.5-4.5",
     engrenagem: "M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM4 12h2M18 12h2M12 4v2M12 18v2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4",
   };
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -155,6 +157,14 @@ export function avisar(mensagem, tipo = "ok") {
   document.getElementById("camada-toast").append(t);
   requestAnimationFrame(() => t.classList.add("visivel"));
   setTimeout(() => { t.classList.remove("visivel"); setTimeout(() => t.remove(), 300); }, 3800);
+}
+
+/* Aviso com um botão de ação (ex.: "Atualizar"). Fica até ser tocado ou 20 s. */
+export function avisarComAcao(mensagem, rotulo, fn) {
+  const t = el("div", { classe: "toast acao" }, mensagem, el("button", { type: "button", classe: "toast-botao", aoClicar: () => { t.remove(); fn(); } }, rotulo));
+  document.getElementById("camada-toast").append(t);
+  requestAnimationFrame(() => t.classList.add("visivel"));
+  setTimeout(() => { t.classList.remove("visivel"); setTimeout(() => t.remove(), 300); }, 20_000);
 }
 
 /* ---------- Modal ---------- */

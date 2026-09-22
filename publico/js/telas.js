@@ -5,12 +5,13 @@
 import { api, qs } from "./api.js";
 import { el, preencher, icone, avisar, confirmar, fmtRelativo, plural, nomeDaCor, ehClara, debounce } from "./ui.js";
 import * as voz from "./voz.js";
+import * as armazem from "./armazem.js";
 import { prefs, salvarPrefs, sumario, irPara, usuarioAtual, atualizarNome } from "./app.js";
 
 /* ============================ estante ============================ */
 export async function telaEstante(container) {
-  const r = await api.get("/api/v1/resumo");
   const s = sumario();
+  const r = await armazem.lerResumo(s);
   const primeira = s.paginas[0];
   const pct = r.total_paginas ? Math.round((r.paginas_lidas / r.total_paginas) * 100) : 0;
 
@@ -51,6 +52,7 @@ export async function telaEstante(container) {
         el("a", { classe: "botao", href: "#/anotacoes" }, icone("nota", 18), "Revisar anotações"),
       ),
     ),
+    r.offline ? el("p", { classe: "selo" }, "sem internet · números da cópia local") : null,
     continuar,
     numeros,
     el("h2", { style: "font-size: 1.2rem; margin-top: 1.6rem" }, "Páginas com anotações"),
@@ -97,7 +99,7 @@ export function arvoreSumario(nos, contagens = new Map(), opcoes = {}) {
 export async function telaSumario(container) {
   const s = sumario();
   let contagens = new Map();
-  try { const r = await api.get("/api/v1/resumo"); contagens = new Map(r.paginas.map((p) => [p.pagina_id, p])); } catch { /* sem contagens */ }
+  try { const r = await armazem.lerResumo(s); contagens = new Map(r.paginas.map((p) => [p.pagina_id, p])); } catch { /* sem contagens */ }
   preencher(container, el("div", { classe: "tela" },
     el("div", { classe: "tela-cabecalho" },
       el("div", {}, el("h1", {}, "Sumário"), el("p", {}, `${s.paginas.length} páginas · ${s.fonte}`)),
@@ -108,7 +110,7 @@ export async function telaSumario(container) {
 
 /* ============================ revisão ============================ */
 export async function telaAnotacoes(container) {
-  const r = await api.get("/api/v1/anotacoes");
+  const r = await armazem.lerRevisao(sumario());
   const grupos = new Map();
   for (const i of r.itens) {
     if (!grupos.has(i.pagina_id)) grupos.set(i.pagina_id, { pagina_id: i.pagina_id, rotulo: i.pagina_rotulo, nome: i.pagina_nome, ordem: i.ordem, itens: [] });
@@ -125,6 +127,7 @@ export async function telaAnotacoes(container) {
       el("button", { classe: "botao", type: "button", aoClicar: () => voz.parar() }, icone("parar", 16), "Parar"),
     ) : null,
   );
+  if (r.offline) cabecalho.append(el("p", { classe: "selo" }, "sem internet · lista da cópia local"));
 
   const corpo = ordenados.length ? ordenados.map((g) => el("section", { classe: "grupo-pagina" },
     el("h2", {}, el("a", { href: `#/ler/${g.pagina_id}` }, `${g.rotulo}${g.nome ? " — " + g.nome : ""}`), el("small", {}, plural(g.itens.length, "item", "itens")),
@@ -148,7 +151,8 @@ function itemAnotacao(i, recarregar) {
       el("button", { classe: "botao-icone", type: "button", title: "Ouvir", aoClicar: () => voz.falar([{ texto: nota ? i.texto : i.trecho, elemento: card }]) }, icone("ouvir", 18)),
       el("a", { classe: "botao-icone", href: `#/ler/${i.pagina_id}?d=${encodeURIComponent(i.dispositivo_id)}`, title: "Abrir na página" }, icone("seta", 18)),
       el("button", { classe: "botao-icone", type: "button", title: "Apagar", aoClicar: () => confirmar(nota ? "Apagar esta nota?" : "Remover esta marcação?", async () => {
-        await api.del(nota ? `/api/v1/notas/${i.id}` : `/api/v1/marcacoes/${i.id}`);
+        await armazem.removerDoEspelho(i.pagina_id, nota ? "notas" : "marcacoes", i.id);
+        void armazem.mutar({ metodo: "DELETE", caminho: nota ? `/api/v1/notas/${i.id}` : `/api/v1/marcacoes/${i.id}` });
         avisar(nota ? "Nota apagada." : "Marcação removida.");
         await recarregar();
       }, "Apagar") }, icone("lixo", 18)),
@@ -166,12 +170,14 @@ export async function telaBusca(container, partes, query) {
     if (termo.trim().length < 2) { preencher(resultados, el("p", { classe: "vazio" }, "Digite pelo menos duas letras.")); return; }
     preencher(resultados, el("p", { classe: "vazio" }, "Buscando…"));
     try {
-      const r = await api.get(`/api/v1/texto/busca${qs({ q: termo })}`);
+      let r;
+      try { r = await api.get(`/api/v1/texto/busca${qs({ q: termo })}`); }
+      catch (e) { if (e.status !== 0) throw e; r = await armazem.buscarLocal(termo); }
       const termos = termo.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().split(/\s+/).filter((t) => t.length >= 2);
       preencher(resultados,
         r.artigo ? el("a", { classe: "resultado", href: `#/ler/${r.artigo.pagina_id}?art=${encodeURIComponent(r.artigo.artigo_id)}`, style: "border-color: var(--acento)" },
           el("div", { classe: "onde" }, "Ir direto para"), el("div", { classe: "ref" }, `Artigo ${termo.replace(/\D+/g, "")}${/adct/i.test(termo) ? " do ADCT" : ""}`)) : null,
-        el("p", { style: "color: var(--tinta-3)" }, r.total ? `${plural(r.total, "dispositivo encontrado", "dispositivos encontrados")}${r.total > r.itens.length ? ` · mostrando ${r.itens.length}` : ""}` : "Nada encontrado com essas palavras."),
+        el("p", { style: "color: var(--tinta-3)" }, (r.offline ? `Sem internet: buscando na cópia local (${plural(r.paginas, "página baixada", "páginas baixadas")}). ` : "") + (r.total ? `${plural(r.total, "dispositivo encontrado", "dispositivos encontrados")}${r.total > r.itens.length ? ` · mostrando ${r.itens.length}` : ""}` : "Nada encontrado com essas palavras.")),
         ...r.itens.map((i) => el("a", { classe: "resultado", href: `#/ler/${i.pagina_id}?d=${encodeURIComponent(i.dispositivo_id)}` },
           el("div", { classe: "onde" }, `${i.trilha} · ${i.pagina_rotulo}${i.pagina_nome ? " — " + i.pagina_nome : ""}`),
           el("div", { classe: "ref" }, i.dispositivo_rotulo ? `${i.artigo_rotulo}, ${i.dispositivo_rotulo}` : i.artigo_rotulo),

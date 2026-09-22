@@ -17,6 +17,14 @@ caneta — Galaxy Tab S10 + S Pen em primeiro lugar, mas qualquer navegador mode
 - **Estante** com "continuar de onde parei", páginas anotadas e **revisão** de todas as
   marcações e notas na ordem do livro.
 
+## No tablet e sem internet
+
+Menu do avatar › **Instalar no tablet** (PWA em tela cheia) e **Baixar para usar sem
+internet** (texto inteiro + anotações no IndexedDB). Depois disso, ler, escrever, marcar
+e ouvir funcionam offline; o que for anotado entra numa fila persistente e sobe quando a
+rede volta — os ids nascem no cliente e o servidor ignora reenvio repetido. O chip no topo
+mostra "Sem internet" ou "N a enviar". Só o login exige rede (a sessão dura 60 dias).
+
 ## Como a tinta fica no lugar certo
 
 Cada traço é guardado em coordenadas relativas ao **dispositivo** (caput, inciso, parágrafo…)

@@ -18,6 +18,7 @@ import { log } from "../nucleo/log.ts";
 import { ErroHttp, erroNaoAutenticado } from "../nucleo/erros.ts";
 import type { Roteador, Contexto } from "./roteador.ts";
 import { lerCookie, validarSessao } from "./sessao.ts";
+import { VERSAO } from "../nucleo/versao.ts";
 
 const PASTA_PUBLICA = resolve(RAIZ, "publico");
 const LIMITE_CORPO = 4_000_000; // lote de traços de uma página cheia cabe folgado
@@ -30,6 +31,7 @@ const TIPOS: Record<string, string> = {
   ".png": "image/png",
   ".ico": "image/x-icon",
   ".webmanifest": "application/manifest+json",
+  ".txt": "text/plain; charset=utf-8",
   ".woff2": "font/woff2",
 };
 
@@ -116,6 +118,17 @@ export function ouvir(roteador: Roteador): Server {
       }
       if (caminho === "/" || caminho === "/index.html") {
         servirEstatico("/index.html", res);
+        return;
+      }
+      /* O service worker sai com a versão real no lugar de __VERSAO__: versão
+         nova = cache nova da casca. Sem cache HTTP, para o navegador ver a
+         troca na próxima abertura. */
+      if (caminho === "/sw.js") {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", TIPOS[".js"]!);
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Service-Worker-Allowed", "/");
+        res.end(readFileSync(resolve(PASTA_PUBLICA, "sw.js"), "utf8").replace(/__VERSAO__/g, VERSAO));
         return;
       }
       if (servirEstatico(caminho, res)) return;

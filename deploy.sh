@@ -102,7 +102,7 @@ echo "     ok"
 # As devDependencies (typescript) não entram no servidor: as provas rodam com
 # o node --test puro, e a conferência de tipos fica no CI.
 azul "3/4  provando antes de subir"
-if ! node --test --test-concurrency=1 testes/texto.test.ts testes/api.test.ts testes/operacao.test.ts > /tmp/lacarta-provas.log 2>&1; then
+if ! node --test --test-concurrency=1 testes/texto.test.ts testes/api.test.ts testes/offline.test.ts testes/operacao.test.ts > /tmp/lacarta-provas.log 2>&1; then
   erro "     As provas FALHARAM. O serviço NÃO foi reiniciado; o site segue na versão anterior."
   grep -E '✖|not ok|Error' /tmp/lacarta-provas.log | head -20 | sed 's/^/       /' >&2
   exit 1

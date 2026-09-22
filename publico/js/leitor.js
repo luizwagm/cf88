@@ -2,20 +2,20 @@
    leitor.js — a página aberta do caderno: a folha com o texto, a tinta por
    cima, a marcação de trechos por seleção, as notas na margem, o estojo de
    ferramentas e a barra de leitura em voz.
+
+   OFFLINE: toda leitura passa pelo armazém (rede → cópia local) e toda
+   escrita muda o espelho local NA HORA e entra na fila de envio. A tela
+   nunca espera o servidor para mostrar o que o estudante acabou de fazer.
    ========================================================================== */
-import { api } from "./api.js";
 import { el, preencher, icone, avisar, abrirModal, fecharModal, confirmar, paletaDeCores, CORES, ehClara, rotuloFalado, fmtRelativo, debounce } from "./ui.js";
 import { Tinta } from "./tinta.js";
 import * as voz from "./voz.js";
-import { prefs, salvarPrefs, sumario, irPara } from "./app.js";
+import * as armazem from "./armazem.js";
+import { prefs, salvarPrefs, sumario } from "./app.js";
 
-const cachePaginas = new Map();
-let estado = null;   // { pagina, marcacoes, notas, tinta, folha, leitor, estojo, barra, popover, painel }
+let estado = null;   // { pagina, marcacoes, notas, leitura, tinta, folha, leitor, estojo, barra, popover, painel }
 
-async function carregarPagina(id) {
-  if (!cachePaginas.has(id)) cachePaginas.set(id, await api.get(`/api/v1/texto/paginas/${encodeURIComponent(id)}`));
-  return cachePaginas.get(id);
-}
+const caminhoPagina = (id) => `/api/v1/paginas/${encodeURIComponent(id)}`;
 
 export function limparLeitor() {
   if (!estado) return;
@@ -30,11 +30,18 @@ export function limparLeitor() {
   document.removeEventListener("pointerup", estado.aoSoltar);
   document.removeEventListener("click", estado.aoClicarFora, true);
   window.removeEventListener("scroll", estado.aoRolar);
-  window.removeEventListener("pagehide", estado.aoSair);
   estado.cancelarVoz?.();
   document.getElementById("conteudo").classList.remove("leitura");
   document.getElementById("topo-titulo").replaceChildren();
   estado = null;
+}
+
+/* O espelho local desta página: é o que o tablet mostra sem internet. */
+function persistir() {
+  if (!estado) return;
+  void armazem.guardarAnotacoes(estado.pagina.id, {
+    pagina_id: estado.pagina.id, tracos: estado.tinta.tracos, marcacoes: estado.marcacoes, notas: estado.notas, leitura: estado.leitura,
+  });
 }
 
 /* ============================ tela ============================ */
@@ -45,8 +52,8 @@ export async function telaLeitor(container, partes, query) {
   container.classList.add("leitura");
   preencher(container, el("div", { classe: "vazio" }, "Abrindo a página…"));
 
-  const [pagina, anot] = await Promise.all([carregarPagina(paginaId), api.get(`/api/v1/paginas/${encodeURIComponent(paginaId)}/anotacoes`)]);
-  estado = { pagina, marcacoes: anot.marcacoes, notas: anot.notas, leitura: anot.leitura };
+  const [pagina, anot] = await Promise.all([armazem.lerPagina(paginaId), armazem.lerAnotacoes(paginaId)]);
+  estado = { pagina, marcacoes: anot.marcacoes ?? [], notas: anot.notas ?? [], leitura: anot.leitura ?? null };
 
   /* cabeçalho do topo */
   preencher(document.getElementById("topo-titulo"),
@@ -72,14 +79,22 @@ export async function telaLeitor(container, partes, query) {
   const topo = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--topo")) || 56;
   estado.tinta = new Tinta({
     folha, topo,
-    aoGravar: async (tracos, final) => (await api.post(`/api/v1/paginas/${encodeURIComponent(pagina.id)}/tracos`, { tracos }, { keepalive: final })).ids,
-    aoApagar: async (ids) => { try { await api.post("/api/v1/tracos/apagar", { ids }); } catch { avisar("Não consegui apagar no servidor.", "erro"); } },
+    gerarId: armazem.novoIdLocal,
+    aoGravar: async (tracos) => {
+      void armazem.mutar({ metodo: "POST", caminho: `${caminhoPagina(pagina.id)}/tracos`, corpo: { tracos } });
+      persistir();
+      return tracos.map((t) => t.id);
+    },
+    aoApagar: async (ids) => {
+      void armazem.mutar({ metodo: "POST", caminho: "/api/v1/tracos/apagar", corpo: { ids } });
+      persistir();
+    },
   });
   estado.tinta.cor = prefs().cor_caneta;
   estado.tinta.corMarcador = prefs().cor_marcador;
   estado.tinta.largura = Number(prefs().largura_caneta) || 2.2;
   estado.tinta.definirDedo(prefs().desenhar_com_dedo === "1");
-  estado.tinta.carregar(anot.tracos);
+  estado.tinta.carregar(anot.tracos ?? []);
 
   montarEstojo();
   montarBarra();
@@ -87,17 +102,19 @@ export async function telaLeitor(container, partes, query) {
   ligarNotasPorToque();
   definirFerramenta(prefs().ferramenta && prefs().ferramenta !== "selecao" ? prefs().ferramenta : "mao");
 
-  /* leitura: registra a visita e acompanha a posição */
-  void api.post(`/api/v1/paginas/${encodeURIComponent(pagina.id)}/leitura`, { posicao: 0, contar: true }).catch(() => {});
+  /* leitura: registra a visita e acompanha a posição (espelho + fila) */
+  estado.leitura = { visitas: (estado.leitura?.visitas ?? 0) + 1, posicao: 0, ultima_em: new Date().toISOString() };
+  persistir();
+  void armazem.mutar({ metodo: "POST", caminho: `${caminhoPagina(pagina.id)}/leitura`, corpo: { posicao: 0, contar: true } });
   estado.aoRolar = debounce(() => {
     if (!estado) return;
     const max = document.documentElement.scrollHeight - window.innerHeight;
     const pos = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-    void api.post(`/api/v1/paginas/${encodeURIComponent(pagina.id)}/leitura`, { posicao: pos, contar: false }).catch(() => {});
+    estado.leitura = { ...estado.leitura, posicao: pos, ultima_em: new Date().toISOString() };
+    persistir();
+    void armazem.mutar({ metodo: "POST", caminho: `${caminhoPagina(pagina.id)}/leitura`, corpo: { posicao: pos, contar: false }, chave: `leitura:${pagina.id}` });
   }, 1200);
   window.addEventListener("scroll", estado.aoRolar, { passive: true });
-  estado.aoSair = () => estado?.tinta?.enviarPendentes(true);
-  window.addEventListener("pagehide", estado.aoSair);
 
   /* posição inicial: artigo/dispositivo pedido, ou onde parou */
   requestAnimationFrame(() => {
@@ -187,8 +204,9 @@ function renderNota(n) {
       el("button", { classe: "botao-icone", type: "button", title: "Ouvir a nota", aoClicar: () => voz.falar([{ texto: n.texto, elemento: card }]) }, icone("ouvir", 16)),
       el("button", { classe: "botao-icone", type: "button", title: "Editar", aoClicar: () => modalNota(n.dispositivo_id, n) }, icone("caneta", 16)),
       el("button", { classe: "botao-icone", type: "button", title: "Apagar", aoClicar: () => confirmar("Apagar esta nota?", async () => {
-        await api.del(`/api/v1/notas/${n.id}`);
         estado.notas = estado.notas.filter((x) => x.id !== n.id);
+        persistir();
+        void armazem.mutar({ metodo: "DELETE", caminho: `/api/v1/notas/${n.id}` });
         card.remove();
         avisar("Nota apagada.");
       }, "Apagar") }, icone("lixo", 16)),
@@ -221,8 +239,9 @@ function montarEstojo() {
   estojo.append(el("div", { classe: "separador" }));
   estojo.append(el("button", { classe: "ferramenta pequena", type: "button", title: "Desfazer último traço", "aria-label": "Desfazer", aoClicar: () => { if (!estado.tinta.desfazerUltimo()) avisar("Nada para desfazer nesta sessão."); } }, icone("desfazer", 20)));
   estojo.append(el("button", { classe: "ferramenta pequena", type: "button", title: "Apagar toda a tinta desta página", "aria-label": "Limpar tinta da página", aoClicar: () => confirmar("Apagar TODOS os traços de caneta e marca-texto desta página? As marcações de trecho e as notas ficam.", async () => {
-    await api.del(`/api/v1/paginas/${encodeURIComponent(estado.pagina.id)}/tracos`);
     estado.tinta.limparTudo();
+    persistir();
+    void armazem.mutar({ metodo: "DELETE", caminho: `${caminhoPagina(estado.pagina.id)}/tracos` });
     avisar("Tinta da página apagada.");
   }, "Apagar tudo") }, icone("lixo", 20)));
   document.body.append(estojo);
@@ -287,8 +306,8 @@ function posicionarJunto(painel, ancora) {
   painel.style.setProperty("left", "0px");
   painel.style.setProperty("top", "0px");
   const pr = painel.getBoundingClientRect();
-  let esq = largo ? Math.max(8, Math.min(window.innerWidth - pr.width - 8, r.left + r.width / 2 - pr.width / 2)) : r.left - pr.width - 12;
-  let topo = largo ? r.top - pr.height - 10 : Math.max(8, Math.min(window.innerHeight - pr.height - 8, r.top + r.height / 2 - pr.height / 2));
+  const esq = largo ? Math.max(8, Math.min(window.innerWidth - pr.width - 8, r.left + r.width / 2 - pr.width / 2)) : r.left - pr.width - 12;
+  const topo = largo ? r.top - pr.height - 10 : Math.max(8, Math.min(window.innerHeight - pr.height - 8, r.top + r.height / 2 - pr.height / 2));
   painel.style.setProperty("left", `${esq}px`);
   painel.style.setProperty("top", `${topo}px`);
 }
@@ -323,6 +342,16 @@ function intervalosDaSelecao() {
   return saida;
 }
 
+/* Cria a marcação LOCALMENTE (id, trecho e data nascem aqui) e enfileira. */
+function criarMarcacao(i, estilo, cor) {
+  const agora = new Date().toISOString();
+  const m = { id: armazem.novoIdLocal(), dispositivo_id: i.dispositivo_id, inicio: i.inicio, fim: i.fim, estilo, cor, trecho: i.trecho, criado_em: agora, recente: true };
+  estado.marcacoes.push(m);
+  persistir();
+  void armazem.mutar({ metodo: "POST", caminho: `${caminhoPagina(estado.pagina.id)}/marcacoes`, corpo: { id: m.id, dispositivo_id: m.dispositivo_id, inicio: m.inicio, fim: m.fim, estilo, cor } });
+  return m;
+}
+
 function mostrarPopoverSelecao() {
   if (!estado) return;
   const intervalos = intervalosDaSelecao();
@@ -330,21 +359,14 @@ function mostrarPopoverSelecao() {
   fecharPopover();
   const sel = window.getSelection();
   const rect = sel.getRangeAt(0).getBoundingClientRect();
-  const criar = (estilo, cor) => async () => {
-    try {
-      let primeiro = null;
-      for (const i of intervalos) {
-        const m = await api.post(`/api/v1/paginas/${encodeURIComponent(estado.pagina.id)}/marcacoes`, { dispositivo_id: i.dispositivo_id, inicio: i.inicio, fim: i.fim, estilo, cor });
-        m.recente = true;
-        estado.marcacoes.push(m);
-        const r = dispositivoPorId(i.dispositivo_id);
-        renderTexto(i.elemento, r.dispositivo);
-        primeiro ??= m;
-      }
-      sel.removeAllRanges();
-      fecharPopover();
-      avisar(estilo === "marca" ? "Trecho marcado." : estilo === "sublinhado" ? "Trecho sublinhado." : "Trecho riscado.");
-    } catch (e) { avisar(e.message, "erro"); }
+  const criar = (estilo, cor) => () => {
+    for (const i of intervalos) {
+      criarMarcacao(i, estilo, cor);
+      renderTexto(i.elemento, dispositivoPorId(i.dispositivo_id).dispositivo);
+    }
+    sel.removeAllRanges();
+    fecharPopover();
+    avisar(estilo === "marca" ? "Trecho marcado." : estilo === "sublinhado" ? "Trecho sublinhado." : "Trecho riscado.");
   };
   const pop = el("div", { classe: "popover-selecao", "data-tipo": "selecao", role: "toolbar" },
     ...CORES.pasteis.map((c) => el("button", { classe: "cor", type: "button", title: `Marcar em ${c.nome.toLowerCase()}`, style: `--cor: ${c.hex}`, aoClicar: criar("marca", c.hex) })),
@@ -383,13 +405,12 @@ function abrirPopoverMarcacao(m, elMark) {
   const rect = elMark.getBoundingClientRect();
   const disp = elMark.closest(".dispositivo");
   const r = dispositivoPorId(m.dispositivo_id);
-  const mudar = (mudancas) => async () => {
-    try {
-      const resp = await api.put(`/api/v1/marcacoes/${m.id}`, mudancas);
-      Object.assign(m, { estilo: resp.estilo, cor: resp.cor });
-      renderTexto(disp, r.dispositivo);
-      fecharPopover();
-    } catch (e) { avisar(e.message, "erro"); }
+  const mudar = (mudancas) => () => {
+    Object.assign(m, mudancas);
+    persistir();
+    void armazem.mutar({ metodo: "PUT", caminho: `/api/v1/marcacoes/${m.id}`, corpo: mudancas, chave: `marcacao:${m.id}`, modo: "mesclar" });
+    renderTexto(disp, r.dispositivo);
+    fecharPopover();
   };
   const pop = el("div", { classe: "popover-selecao", "data-tipo": "marcacao", role: "toolbar" },
     ...CORES.pasteis.map((c) => el("button", { classe: "cor", type: "button", title: c.nome, style: `--cor: ${c.hex}`, aoClicar: mudar({ cor: c.hex, estilo: "marca" }) })),
@@ -399,14 +420,13 @@ function abrirPopoverMarcacao(m, elMark) {
     el("span", { classe: "divisor" }),
     el("button", { classe: "acao icone-so", type: "button", title: "Ouvir", aoClicar: () => { voz.falar([{ texto: m.trecho, elemento: disp }]); fecharPopover(); } }, icone("ouvir", 18)),
     el("button", { classe: "acao icone-so", type: "button", title: "Nota sobre o trecho", aoClicar: () => { fecharPopover(); modalNota(m.dispositivo_id, null, m.trecho); } }, icone("nota", 18)),
-    el("button", { classe: "acao icone-so", type: "button", title: "Remover marcação", aoClicar: async () => {
-      try {
-        await api.del(`/api/v1/marcacoes/${m.id}`);
-        estado.marcacoes = estado.marcacoes.filter((x) => x.id !== m.id);
-        renderTexto(disp, r.dispositivo);
-        fecharPopover();
-        avisar("Marcação removida.");
-      } catch (e) { avisar(e.message, "erro"); }
+    el("button", { classe: "acao icone-so", type: "button", title: "Remover marcação", aoClicar: () => {
+      estado.marcacoes = estado.marcacoes.filter((x) => x.id !== m.id);
+      persistir();
+      void armazem.mutar({ metodo: "DELETE", caminho: `/api/v1/marcacoes/${m.id}` });
+      renderTexto(disp, r.dispositivo);
+      fecharPopover();
+      avisar("Marcação removida.");
     } }, icone("lixo", 18)),
   );
   posicionarPopover(pop, rect);
@@ -445,25 +465,27 @@ function modalNota(dispositivoId, existente = null, trecho = "") {
     ),
     [
       el("button", { classe: "botao", type: "button", aoClicar: fecharModal }, "Cancelar"),
-      el("button", { classe: "botao botao-primario", type: "button", aoClicar: async () => {
+      el("button", { classe: "botao botao-primario", type: "button", aoClicar: () => {
         const texto = campo.value.trim();
         if (!texto) { avisar("Escreva alguma coisa antes de salvar.", "erro"); campo.focus(); return; }
-        try {
-          if (existente) {
-            const r = await api.put(`/api/v1/notas/${existente.id}`, { texto, cor });
-            Object.assign(existente, { texto, cor, atualizado_em: r.atualizado_em });
-            const antigo = estado.folha.querySelector(`[data-nota-id="${CSS.escape(existente.id)}"]`);
-            antigo?.replaceWith(renderNota(existente));
-          } else {
-            const n = await api.post(`/api/v1/paginas/${encodeURIComponent(estado.pagina.id)}/notas`, { dispositivo_id: dispositivoId, texto, cor });
-            estado.notas.push(n);
-            const disp = estado.folha.querySelector(`[data-id="${CSS.escape(dispositivoId)}"]`);
-            disp?.closest(".bloco")?.append(renderNota(n));
-          }
-          fecharModal();
-          avisar("Nota salva.");
-          if (!existente) definirFerramenta("mao");
-        } catch (e) { avisar(e.message, "erro"); }
+        const agora = new Date().toISOString();
+        if (existente) {
+          Object.assign(existente, { texto, cor, atualizado_em: agora });
+          persistir();
+          void armazem.mutar({ metodo: "PUT", caminho: `/api/v1/notas/${existente.id}`, corpo: { texto, cor }, chave: `nota:${existente.id}`, modo: "mesclar" });
+          const antigo = estado.folha.querySelector(`[data-nota-id="${CSS.escape(existente.id)}"]`);
+          antigo?.replaceWith(renderNota(existente));
+        } else {
+          const n = { id: armazem.novoIdLocal(), dispositivo_id: dispositivoId, texto, cor, criado_em: agora, atualizado_em: agora };
+          estado.notas.push(n);
+          persistir();
+          void armazem.mutar({ metodo: "POST", caminho: `${caminhoPagina(estado.pagina.id)}/notas`, corpo: { id: n.id, dispositivo_id: dispositivoId, texto, cor } });
+          const disp = estado.folha.querySelector(`[data-id="${CSS.escape(dispositivoId)}"]`);
+          disp?.closest(".bloco")?.append(renderNota(n));
+        }
+        fecharModal();
+        avisar("Nota salva.");
+        if (!existente) definirFerramenta("mao");
       } }, "Salvar nota"),
     ]);
 }
@@ -482,20 +504,12 @@ function ouvirArtigo(a) {
   if (!voz.vozDisponivel()) return avisar("Este navegador não tem leitura em voz.", "erro");
   voz.falar(itensDoArtigo(a));
 }
-function ouvirPagina(aPartirDe = null) {
-  const itens = [];
-  let comecou = aPartirDe === null;
-  itens.push({ texto: `${estado.pagina.rotulo}. ${estado.pagina.nome || ""}`, elemento: estado.folha.querySelector(".folha-titulo") });
-  for (const a of estado.pagina.artigos) {
-    for (const item of itensDoArtigo(a)) {
-      if (!comecou && item.elemento?.dataset.id === aPartirDe) comecou = true;
-      if (comecou) itens.push(item);
-    }
-  }
+function ouvirPagina() {
+  const itens = [{ texto: `${estado.pagina.rotulo}. ${estado.pagina.nome || ""}`, elemento: estado.folha.querySelector(".folha-titulo") }];
+  for (const a of estado.pagina.artigos) itens.push(...itensDoArtigo(a));
   if (!voz.falar(itens)) avisar("Este navegador não tem leitura em voz.", "erro");
 }
 function ouvirAnotacoes() {
-  const itens = [];
   const ordem = [];
   for (const a of estado.pagina.artigos) for (const d of a.dispositivos) ordem.push(d.id);
   const posicao = (id) => ordem.indexOf(id);
@@ -503,10 +517,10 @@ function ouvirAnotacoes() {
     ...estado.marcacoes.map((m) => ({ pos: posicao(m.dispositivo_id), texto: `Trecho marcado em ${falarReferencia(m.dispositivo_id)}: ${m.trecho}`, id: m.dispositivo_id })),
     ...estado.notas.map((n) => ({ pos: posicao(n.dispositivo_id), texto: `Minha nota em ${falarReferencia(n.dispositivo_id)}: ${n.texto}`, id: n.dispositivo_id, notaId: n.id })),
   ].sort((x, y) => x.pos - y.pos);
-  for (const i of lista) {
-    const elx = i.notaId ? estado.folha.querySelector(`[data-nota-id="${CSS.escape(i.notaId)}"]`) : estado.folha.querySelector(`[data-id="${CSS.escape(i.id)}"]`);
-    itens.push({ texto: i.texto, elemento: elx });
-  }
+  const itens = lista.map((i) => ({
+    texto: i.texto,
+    elemento: i.notaId ? estado.folha.querySelector(`[data-nota-id="${CSS.escape(i.notaId)}"]`) : estado.folha.querySelector(`[data-id="${CSS.escape(i.id)}"]`),
+  }));
   if (!itens.length) return avisar("Esta página ainda não tem marcações nem notas.");
   if (!voz.falar(itens)) avisar("Este navegador não tem leitura em voz.", "erro");
 }
