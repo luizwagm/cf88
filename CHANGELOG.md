@@ -1,0 +1,24 @@
+# Changelog
+
+## 1.1.0 — 2026-09-22
+
+- Operação para cf88.projetos.luizaugust.me: `criar-site.sh` (vhost com noindex, freio no
+  login, retorno do vhost anterior se o nginx recusar, certificado), `deploy.sh` (prova antes
+  de reiniciar, confere a versão no ar), `verificar.sh`, unidades do systemd (serviço + cópia
+  diária 03:30 por `VACUUM INTO`), Node 24 isolado em /opt/node24, GitHub Actions
+  (testes + deploy por push), `SUBIR.md`.
+- `robots.txt` fechado e `X-Robots-Tag` no vhost: caderno pessoal, fora do índice.
+- 8 provas novas de operação (vhost em ensaio, unidades, CRLF, deploy).
+
+## 1.0.0 — 2026-09-22
+
+Primeira versão.
+
+- Extrator do PDF do Senado (CF88 até a EC 139/2026) para JSON estruturado: 93 páginas,
+  277 artigos na CF + 143 no ADCT, 3.346 dispositivos, 28 notas do editor.
+- Backend Node 24 + TypeScript, SQLite/Postgres, sessões, limitador de força bruta, CSP estrita.
+- Leitor em folha com caneta, marca-texto, borracha, notas e marcação de trecho por seleção;
+  tinta ancorada ao dispositivo, reescalada a qualquer largura.
+- Leitura em voz (Web Speech) da página, do artigo, do trecho e das anotações.
+- Estante, sumário em gaveta, busca, revisão de anotações e ajustes.
+- 34 provas (conteúdo + API real com dois usuários).

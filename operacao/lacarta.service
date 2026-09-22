@@ -1,0 +1,59 @@
+[Unit]
+Description=LA Carta — a Constituição como caderno (cf88.projetos.luizaugust.me)
+Documentation=file:///var/www/projetos/LA-Carta/README.md
+After=network-online.target
+Wants=network-online.target
+
+# StartLimitIntervalSec pertence ao [Unit]. No [Service] o systemd escreve
+# "Unknown key name … ignoring" e SEGUE. Zero = não desiste nunca.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/var/www/projetos/LA-Carta
+
+# O ambiente da unidade tem PRIORIDADE sobre o .env (config.ts só preenche o
+# que ainda não existe). Produção exige CARTA_SEGREDO_SESSAO de 32+ caracteres
+# no .env — o criar-site.sh gera um se faltar.
+Environment=CARTA_AMBIENTE=producao
+Environment=PORTA=5209
+Environment=HOST=127.0.0.1
+Environment=PROXIES_CONFIAVEIS=1
+Environment=CARTA_BANCO=sqlite
+EnvironmentFile=-/var/www/projetos/LA-Carta/.env
+
+# AS PASTAS DE ESCRITA NASCEM AQUI, e não no servidor Node.
+# Com ProtectSystem=strict o /var/www fica só-leitura DENTRO do namespace, e
+# um ReadWritePaths com `-` é IGNORADO quando a pasta não existe: o mkdirSync
+# do bd.ts falharia com ENOENT e o serviço reiniciaria em laço a cada 3 s.
+# O `+` roda FORA do sandbox, como root, antes do namespace existir.
+ExecStartPre=+/bin/mkdir -p /var/www/projetos/LA-Carta/dados /var/www/projetos/LA-Carta/backups
+ExecStartPre=+/bin/chown deploy:deploy /var/www/projetos/LA-Carta/dados /var/www/projetos/LA-Carta/backups
+
+# Node 24 PRÓPRIO, em /opt/node24 (operacao/instalar-node24.sh): o /usr/bin/node
+# do servidor é a linha 22 dos outros sites, com módulos nativos compilados
+# para ela. Trocar o Node global quebraria os vizinhos; este fica isolado.
+# TypeScript roda direto (sem build) e o banco é o node:sqlite embutido.
+ExecStart=/opt/node24/bin/node src/servidor.ts
+Restart=always
+RestartSec=3
+
+# CONTENÇÃO. O processo escreve em dados/ (SQLite em WAL: a permissão é da
+# PASTA, ele cria e apaga -wal/-shm) e em backups/ (a cópia diária).
+# NÃO há MemoryDenyWriteExecute: mata o V8 com 5/TRAP segundos depois de subir.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=-/var/www/projetos/LA-Carta/dados
+ReadWritePaths=-/var/www/projetos/LA-Carta/backups
+
+SyslogIdentifier=lacarta
+
+[Install]
+WantedBy=multi-user.target

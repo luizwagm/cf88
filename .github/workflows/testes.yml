@@ -1,0 +1,70 @@
+# ==========================================================================
+#  TESTES — LA Carta
+#
+#  Roda em todo push e pull request, e é chamado pelo deploy como portão:
+#  uma suíte vermelha não vira site no ar.
+# ==========================================================================
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_call:      # chamado pelo deploy.yml
+  workflow_dispatch:
+
+jobs:
+  provar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # A MESMA LINHA DO SERVIDOR: o LA Carta roda no Node 24 de /opt/node24
+      # (TypeScript direto e node:sqlite), não no Node 22 do sistema.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci --no-audit --no-fund
+
+      - name: Todo shell script compila
+        run: |
+          erros=0
+          while IFS= read -r f; do
+            bash -n "$f" || { echo "::error file=$f::erro de sintaxe"; erros=1; }
+          done < <(git ls-files '*.sh')
+          exit $erros
+
+      - name: Nenhum script com fim de linha do Windows
+        run: |
+          if git ls-files '*.sh' '*.service' '*.timer' | xargs -r grep -lP '\r$' 2>/dev/null | grep .; then
+            echo "::error::os arquivos acima têm CRLF — o bash e o systemd não leem assim"
+            exit 1
+          fi
+          echo "todos com LF"
+
+      - name: A versão bate entre package.json, o lock e versao.ts
+        run: |
+          node -e '
+            const p = require("./package.json"), l = require("./package-lock.json");
+            const raiz = (l.packages && l.packages[""] || {}).version;
+            const v = require("fs").readFileSync("src/nucleo/versao.ts", "utf8").match(/"(\d+\.\d+\.\d+)"/)[1];
+            if (p.version !== l.version || p.version !== raiz || p.version !== v) {
+              console.log(`::error::package.json ${p.version}, lock ${l.version}, lock raiz ${raiz}, versao.ts ${v} — rode: npm install --package-lock-only`);
+              process.exit(1);
+            }
+            console.log("versão", p.version, "em todos");
+          '
+
+      - name: Tipos
+        run: npx tsc --noEmit
+
+      # Conteúdo + API real (porta efêmera, banco em memória) + operação
+      # (vhost em ensaio, unidades, scripts).
+      - name: Suíte
+        run: npm test

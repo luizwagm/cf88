@@ -1,0 +1,142 @@
+# ==========================================================================
+#  DEPLOY — LA Carta
+#
+#  Push na main → o GitHub entra no servidor por SSH e roda o `deploy.sh`.
+#  Nunca sobe sem a bateria passar: o job depende do de testes.
+#
+#  SEGREDOS (Settings → Secrets and variables → Actions):
+#    SSH_HOST         o IP ou nome do servidor
+#    SSH_USER         deploy
+#    SSH_KEY          a chave PRIVADA (o conteúdo do arquivo, SEM .pub)
+#    SSH_KNOWN_HOSTS  saída de `ssh-keyscan -H <servidor>` (opcional)
+#    SSH_PORT         só se o SSH não estiver na 22
+#
+#  NO SERVIDOR: o `deploy.sh` roda como o usuário `deploy`, NÃO como root — ele
+#  recusa root de propósito. O único passo que precisa de raiz é reiniciar o
+#  serviço, e é só isso que entra no sudoers (/etc/sudoers.d/lacarta).
+#
+#  ARMADILHA JÁ PAGA NO PARQUE: chave presa a `command=` no authorized_keys
+#  IGNORA o comando pedido e roda o dela — testar a conexão JÁ DISPARA o
+#  deploy. Prenda primeiro a um `echo`, depois troque pelo comando de verdade.
+# ==========================================================================
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - '.gitattributes'
+      - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      motivo:
+        description: 'Por que está subindo agora'
+        required: false
+        default: 'deploy manual'
+
+concurrency:
+  group: deploy-lacarta
+  cancel-in-progress: false
+
+jobs:
+  testar:
+    uses: ./.github/workflows/testes.yml
+
+  subir:
+    needs: testar
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Conferir se os segredos existem
+        run: |
+          faltando=""
+          [ -n "${{ secrets.SSH_HOST }}" ] || faltando="$faltando SSH_HOST"
+          [ -n "${{ secrets.SSH_USER }}" ] || faltando="$faltando SSH_USER"
+          [ -n "${{ secrets.SSH_KEY }}" ]  || faltando="$faltando SSH_KEY"
+          if [ -n "$faltando" ]; then
+            echo "::error::faltam os segredos:$faltando — configure em Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+
+      - name: Preparar o SSH
+        env:
+          CHAVE: ${{ secrets.SSH_KEY }}
+          CONHECIDOS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          HOST: ${{ secrets.SSH_HOST }}
+          PORTA: ${{ secrets.SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$CHAVE" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          if [ -n "$CONHECIDOS" ]; then
+            printf '%s\n' "$CONHECIDOS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${PORTA:-22}" -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+            echo "::warning::SSH_KNOWN_HOSTS não configurado — aceitando a chave do servidor sem conferir"
+          fi
+          chmod 600 ~/.ssh/known_hosts
+          if ! grep -q "PRIVATE KEY" ~/.ssh/deploy; then
+            echo "::error::SSH_KEY não é uma chave privada (o conteúdo tem de começar com '-----BEGIN OPENSSH PRIVATE KEY-----')."
+            exit 1
+          fi
+          echo "impressão digital da chave: $(ssh-keygen -lf ~/.ssh/deploy | awk '{print $2}')"
+
+      - name: Testar o acesso antes de mexer no servidor
+        env:
+          HOST: ${{ secrets.SSH_HOST }}
+          USUARIO: ${{ secrets.SSH_USER }}
+          PORTA: ${{ secrets.SSH_PORT }}
+        run: |
+          if ssh -i ~/.ssh/deploy -p "${PORTA:-22}" -o BatchMode=yes -o ConnectTimeout=15 "$USUARIO@$HOST" 'echo conectado' 2>/dev/null | grep -q conectado; then
+            echo "acesso SSH OK"
+          else
+            ssh -v -i ~/.ssh/deploy -p "${PORTA:-22}" -o BatchMode=yes -o ConnectTimeout=15 "$USUARIO@$HOST" 'echo x' 2>&1 \
+              | grep -Ei "identity file|Offering|Server accepts|denied|no matching|Connection" | head -20 || true
+            echo "::error::a chave de SSH_KEY não foi aceita — confira em ~/.ssh/authorized_keys do usuário deploy no servidor"
+            exit 1
+          fi
+
+      # SEM sudo, de propósito: o deploy.sh recusa root (npm ci como root faz o
+      # root virar dono de node_modules/ e a entrega seguinte falha).
+      - name: Deploy
+        env:
+          HOST: ${{ secrets.SSH_HOST }}
+          USUARIO: ${{ secrets.SSH_USER }}
+          PORTA: ${{ secrets.SSH_PORT }}
+        run: |
+          set -o pipefail
+          ssh -i ~/.ssh/deploy -p "${PORTA:-22}" -o BatchMode=yes -o ConnectTimeout=20 \
+              "$USUARIO@$HOST" '/var/www/projetos/LA-Carta/deploy.sh' 2>&1 | tee saida-deploy.txt
+
+      # O /api/v1/saude devolve a versão EM MEMÓRIA no processo. Se não for a
+      # deste commit, o script rodou e o serviço não pegou o código novo.
+      - name: Conferir que a versão nova está no ar
+        env:
+          HOST: ${{ secrets.SSH_HOST }}
+          USUARIO: ${{ secrets.SSH_USER }}
+          PORTA: ${{ secrets.SSH_PORT }}
+        run: |
+          ESPERADA=$(node -p "require('./package.json').version")
+          NO_AR=$(ssh -i ~/.ssh/deploy -p "${PORTA:-22}" -o BatchMode=yes "$USUARIO@$HOST" \
+                  "curl -s --max-time 10 http://127.0.0.1:5209/api/v1/saude" \
+                  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).versao)}catch{console.log("?")}})')
+          echo "esperada: $ESPERADA · no ar: $NO_AR"
+          if [ "$ESPERADA" != "$NO_AR" ]; then
+            echo "::error::a versão no ar ($NO_AR) não é a deste commit ($ESPERADA)"
+            exit 1
+          fi
+          echo "::notice::LA Carta v$NO_AR no ar em cf88.projetos.luizaugust.me"
+
+      - name: Guardar a saída do deploy
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: saida-deploy
+          path: saida-deploy.txt
+          if-no-files-found: ignore
+          retention-days: 14

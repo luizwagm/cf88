@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f8f4ea">
+  <title>LA Carta — a Constituição como caderno</title>
+  <link rel="stylesheet" href="/estilo.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d6b4f'/%3E%3Cpath d='M7 9.5c3-1.6 6-1.6 9 0 3-1.6 6-1.6 9 0v13c-3-1.6-6-1.6-9 0-3-1.6-6-1.6-9 0z' fill='none' stroke='%23f8f4ea' stroke-width='1.8' stroke-linejoin='round'/%3E%3Cpath d='M16 9.5v13' stroke='%23f8f4ea' stroke-width='1.8'/%3E%3Cpath d='M19 15.5l4.5-4.5' stroke='%23e2b84a' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <!-- Login -->
+  <div id="tela-login" class="login-fundo escondido">
+    <form id="form-login" class="login-cartao" autocomplete="on">
+      <div class="login-marca">
+        <svg viewBox="0 0 32 32" width="56" height="56" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#1d6b4f"/><path d="M7 9.5c3-1.6 6-1.6 9 0 3-1.6 6-1.6 9 0v13c-3-1.6-6-1.6-9 0-3-1.6-6-1.6-9 0z" fill="none" stroke="#f8f4ea" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 9.5v13" stroke="#f8f4ea" stroke-width="1.8"/><path d="M19 15.5l4.5-4.5" stroke="#e2b84a" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <h1>LA Carta</h1>
+        <p>A Constituição de 1988, como um caderno seu.</p>
+      </div>
+      <label>E-mail
+        <input type="email" id="login-email" autocomplete="username" required>
+      </label>
+      <label>Senha
+        <input type="password" id="login-senha" autocomplete="current-password" required>
+      </label>
+      <p id="login-erro" class="login-erro" role="alert"></p>
+      <button type="submit" class="botao botao-primario botao-largo">Abrir o caderno</button>
+      <p class="login-versao" id="login-versao"></p>
+    </form>
+  </div>
+
+  <!-- Aplicação -->
+  <div id="aplicacao" class="aplicacao escondido">
+    <header class="topo">
+      <button id="botao-sumario" class="botao-icone" aria-label="Sumário" title="Sumário">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <a class="marca" href="#/">
+        <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#1d6b4f"/><path d="M7 9.5c3-1.6 6-1.6 9 0 3-1.6 6-1.6 9 0v13c-3-1.6-6-1.6-9 0-3-1.6-6-1.6-9 0z" fill="none" stroke="#f8f4ea" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 9.5v13" stroke="#f8f4ea" stroke-width="1.8"/><path d="M19 15.5l4.5-4.5" stroke="#e2b84a" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span>LA Carta</span>
+      </a>
+      <div class="topo-titulo" id="topo-titulo"></div>
+      <div class="espaco"></div>
+      <form id="busca-rapida" class="busca-rapida" role="search">
+        <input id="busca-rapida-campo" type="search" placeholder="Buscar ou ir para o art. …" aria-label="Buscar no texto" autocomplete="off">
+      </form>
+      <nav class="topo-links" aria-label="Atalhos">
+        <a href="#/anotacoes" title="Minhas anotações" data-rota="#/anotacoes">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 3h9l4 4v14H6z M15 3v4h4 M9 12h6 M9 16h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          <span>Anotações</span>
+        </a>
+      </nav>
+      <div class="menu-usuario" id="menu-usuario">
+        <button id="botao-usuario" class="botao-usuario" aria-haspopup="menu" aria-expanded="false">
+          <span id="usuario-inicial" class="avatar"></span>
+        </button>
+        <div id="dropdown-usuario" class="dropdown escondido" role="menu"></div>
+      </div>
+    </header>
+
+    <div id="gaveta-fundo" class="gaveta-fundo"></div>
+    <aside id="gaveta" class="gaveta" aria-label="Sumário da Constituição">
+      <div class="gaveta-cabecalho">
+        <strong>Sumário</strong>
+        <button id="fechar-gaveta" class="botao-icone" aria-label="Fechar sumário">×</button>
+      </div>
+      <nav id="sumario-nav" class="sumario-nav"></nav>
+    </aside>
+
+    <main id="conteudo" class="conteudo" tabindex="-1"></main>
+  </div>
+
+  <div id="camada-modal"></div>
+  <div id="camada-toast" aria-live="polite"></div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

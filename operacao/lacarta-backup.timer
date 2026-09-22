@@ -1,0 +1,10 @@
+[Unit]
+Description=LA Carta — cópia diária às 03:30 (antes do LA Backup das 04:00)
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

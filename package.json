@@ -1,0 +1,29 @@
+{
+  "name": "la-carta",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "LA Carta — a Constituição de 1988 como caderno de estudo com caneta (S Pen), marcações, notas e leitura em voz",
+  "main": "src/servidor.ts",
+  "scripts": {
+    "start": "node src/servidor.ts",
+    "migrar": "node src/dados/migrar.ts",
+    "semear": "node src/dados/semear.ts",
+    "extrair": "python -X utf8 ferramentas/extrair-cf88.py",
+    "tipos": "tsc --noEmit",
+    "test": "node --test --test-concurrency=1 testes/texto.test.ts testes/api.test.ts testes/operacao.test.ts",
+    "copia": "node ferramentas/copia.ts"
+  },
+  "dependencies": {},
+  "optionalDependencies": {
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/pg": "^8.23.1",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
