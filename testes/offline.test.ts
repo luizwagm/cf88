@@ -77,6 +77,15 @@ describe("aplicativo instalável", () => {
     assert.equal(r.headers.get("cache-control"), "no-cache");
     assert.match(r.headers.get("content-type") ?? "", /javascript/);
   });
+  it("o worker novo só assume por mensagem (nunca no meio de uma anotação) e o app observa", async () => {
+    const sw = await (await fetch(ambiente.base + "/sw.js")).text();
+    assert.ok(!/self\.skipWaiting\(\)/.test(sw.split('addEventListener("message"')[0]!), "skipWaiting fora do handler de mensagem");
+    assert.match(sw, /"pular-espera"/);
+    const app = await (await fetch(ambiente.base + "/js/app.js")).text();
+    assert.match(app, /registroSw\.update\(\)/);
+    assert.match(app, /visibilitychange/);
+    assert.match(app, /setInterval\(\(\) => void verificarAtualizacao/);
+  });
   it("manifesto, ícones e a casca que o service worker precisa existem", async () => {
     const m = await fetch(ambiente.base + "/manifest.webmanifest");
     assert.equal(m.status, 200);

@@ -59,6 +59,7 @@ export function icone(nome, tamanho = 20) {
     check: "M5 12l4.5 4.5L19 7",
     mais: "M12 5v14M5 12h14",
     instalar: "M12 4v11M7 10l5 5 5-5M5 19h14",
+    atualizar: "M20 12a8 8 0 01-14.5 4.6M4 12a8 8 0 0114.5-4.6M18.5 4v4h-4M5.5 20v-4h4",
     baixar: "M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2M12 3v12M7.5 10.5L12 15l4.5-4.5",
     engrenagem: "M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM4 12h2M18 12h2M12 4v2M12 18v2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4",
   };

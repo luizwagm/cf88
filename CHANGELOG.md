@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0 — 2026-09-22
+
+- O aplicativo **observa atualizações**: confere ao abrir, ao voltar ao primeiro plano, ao
+  recuperar a rede e a cada 20 minutos (worker novo + versão anunciada em /api/v1/saude).
+  Havendo uma, mostra pastilha pulsante no topo, item em destaque no menu e cartão em
+  Ajustes › Aplicativo, até ser aplicada; a tinta pendente vai para a fila antes de recarregar.
+
 ## 1.3.0 — 2026-09-22
 
 - Sumário (gaveta e tela cheia) mostra os artigos de cada página como pastilhas

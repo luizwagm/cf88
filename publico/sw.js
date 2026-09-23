@@ -35,6 +35,9 @@ self.addEventListener("activate", (evento) => {
 
 self.addEventListener("message", (evento) => {
   if (evento.data === "pular-espera") self.skipWaiting();
+  /* O app pergunta qual versão está NO CONTROLE: é a versão dele mesmo, não a
+     do servidor (que pode já estar à frente). */
+  if (evento.data === "versao?" && evento.ports[0]) evento.ports[0].postMessage(VERSAO);
 });
 
 self.addEventListener("fetch", (evento) => {

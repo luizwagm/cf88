@@ -6,7 +6,7 @@ import { api, qs } from "./api.js";
 import { el, preencher, icone, avisar, confirmar, fmtRelativo, plural, nomeDaCor, ehClara, debounce } from "./ui.js";
 import * as voz from "./voz.js";
 import * as armazem from "./armazem.js";
-import { prefs, salvarPrefs, sumario, irPara, usuarioAtual, atualizarNome } from "./app.js";
+import { prefs, salvarPrefs, sumario, irPara, usuarioAtual, atualizarNome, atualizacao, temAtualizacao, verificarAtualizacao, aplicarAtualizacao, aoMudarAtualizacao, versaoApp } from "./app.js";
 
 /* ============================ estante ============================ */
 export async function telaEstante(container) {
@@ -231,6 +231,40 @@ function realcar(texto, termos) {
   return nos;
 }
 
+/* ============================ aplicativo ============================ */
+function cartaoAplicativo(eu) {
+  const estadoEl = el("p", { style: "margin: 0; color: var(--tinta-3); font-size: .86rem" });
+  const botao = el("button", { classe: "botao", type: "button" });
+  const desenhar = () => {
+    const ha = temAtualizacao();
+    preencher(estadoEl, ha
+      ? `Versão ${atualizacao.versaoNova || "nova"} pronta para instalar. Você está na ${versaoApp()}.`
+      : `Você está na versão ${versaoApp()}.${atualizacao.ultimaVerificacao ? ` Última conferência ${fmtRelativo(atualizacao.ultimaVerificacao)}.` : ""} O aplicativo confere sozinho ao abrir, ao voltar ao primeiro plano e a cada 20 minutos.`);
+    preencher(botao, icone("atualizar", 18), ha ? "Atualizar agora" : "Verificar atualização");
+    botao.className = ha ? "botao botao-primario" : "botao";
+    botao.onclick = async () => {
+      if (temAtualizacao()) return aplicarAtualizacao();
+      botao.disabled = true;
+      const nova = await verificarAtualizacao("manual");
+      botao.disabled = false;
+      if (!nova) avisar(`Você está na versão mais recente (${versaoApp()}).`);
+    };
+  };
+  desenhar();
+  aoMudarAtualizacao(desenhar);
+  const instalado = window.matchMedia("(display-mode: standalone)").matches;
+  return el("div", { classe: "cartao form" },
+    el("h2", { style: "font-size:1.1rem" }, "Aplicativo"),
+    estadoEl,
+    el("div", { classe: "acoes" }, botao),
+    el("p", { style: "margin: 0; color: var(--tinta-3); font-size: .82rem" }, `${instalado ? "Instalado como aplicativo." : "Aberto no navegador (o menu do avatar instala no tablet)."} ${armazemBaixado()}`),
+  );
+}
+function armazemBaixado() {
+  const b = armazem.estado.baixadoEm;
+  return b ? `Cópia offline de ${fmtRelativo(b)}.` : "Sem cópia offline ainda.";
+}
+
 /* ============================ ajustes ============================ */
 export async function telaAjustes(container) {
   const p = prefs();
@@ -282,6 +316,7 @@ export async function telaAjustes(container) {
         ),
         el("p", { style: "color: var(--tinta-3); font-size: .82rem; margin: 0" }, "As vozes vêm do próprio aparelho. No Galaxy Tab, instale ou atualize as vozes em português nos ajustes de Texto para voz do Android."),
       ),
+      cartaoAplicativo(eu),
       el("form", { classe: "cartao form", aoEnviar: async (e) => {
         e.preventDefault();
         try { await api.put("/api/v1/eu", { nome: nome.value }); atualizarNome(nome.value); avisar("Nome salvo."); } catch (ex) { avisar(ex.message, "erro"); }

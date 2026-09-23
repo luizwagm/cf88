@@ -36,6 +36,14 @@ export function limparLeitor() {
   estado = null;
 }
 
+/* Antes de recarregar (atualização do app): a tinta ainda não enviada vai
+   para a fila agora, sem esperar o temporizador. */
+export async function salvarPendentes() {
+  if (!estado?.tinta) return;
+  await estado.tinta.enviarPendentes(true);
+  persistir();
+}
+
 /* O espelho local desta página: é o que o tablet mostra sem internet. */
 function persistir() {
   if (!estado) return;

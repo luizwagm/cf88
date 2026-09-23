@@ -11,13 +11,18 @@ import { el, preencher, avisar, avisarComAcao, icone, abrirModal, fecharModal, f
 import * as voz from "./voz.js";
 import * as armazem from "./armazem.js";
 import { telaEstante, telaSumario, telaAnotacoes, telaBusca, telaAjustes, arvoreSumario } from "./telas.js";
-import { telaLeitor, limparLeitor } from "./leitor.js";
+import { telaLeitor, limparLeitor, salvarPendentes } from "./leitor.js";
 
 let eu = null;
 let sumarioDados = null;
 let preferencias = {};
 let promptInstalacao = null;      // o evento beforeinstallprompt, guardado até o toque no menu
 let registroSw = null;
+/* Atualização pendente: o worker novo já instalado (esperando) e/ou a versão
+   que o servidor anuncia. O aviso fica no topo e no menu até ser aplicado. */
+export const atualizacao = { worker: null, versaoNova: null, ultimaVerificacao: null, avisada: false };
+const ouvintesAtualizacao = new Set();
+export function aoMudarAtualizacao(fn) { ouvintesAtualizacao.add(fn); return () => ouvintesAtualizacao.delete(fn); }
 
 export function usuarioAtual() { return eu; }
 export function sumario() { return sumarioDados; }
@@ -156,23 +161,99 @@ async function baixarParaOffline() {
   }
 }
 
-/* ---------- service worker (a casca do aplicativo) ---------- */
+/* ---------- service worker (a casca do aplicativo) e atualização ----------
+   O navegador só confere o sw.js sozinho de vez em quando (e um app instalado
+   pode ficar dias aberto). Por isso o app OBSERVA: confere ao abrir, ao voltar
+   ao primeiro plano, ao recuperar a rede e a cada 20 minutos — e compara a
+   versão que o servidor anuncia com a que está rodando. Havendo novidade, o
+   worker novo fica ESPERANDO (não troca sozinho no meio de uma anotação) e o
+   aviso fica visível até o estudante tocar em "Atualizar". */
+const VERIFICAR_A_CADA_MS = 20 * 60 * 1000;
+
+function anunciarAtualizacao() {
+  for (const fn of ouvintesAtualizacao) { try { fn(atualizacao); } catch { /* ouvinte quebrado não derruba os outros */ } }
+  renderChipAtualizacao();
+  if (eu) montarMenuUsuario();
+  if (temAtualizacao() && !atualizacao.avisada) {
+    atualizacao.avisada = true;
+    avisarComAcao(`Versão nova do LA Carta${atualizacao.versaoNova ? ` (${atualizacao.versaoNova})` : ""} pronta para instalar.`, "Atualizar", aplicarAtualizacao);
+  }
+}
+export function temAtualizacao() { return Boolean(atualizacao.worker || (atualizacao.versaoNova && atualizacao.versaoNova !== versaoApp())); }
+
+/* A versão que ESTE app está rodando: a do worker no controle (a casca em
+   cache), não a que o servidor anuncia — depois de um deploy elas divergem, e
+   é essa diferença que define "tem atualização". */
+let versaoRodando = null;
+export function versaoApp() { return versaoRodando || eu?.versao || ""; }
+async function descobrirVersaoRodando() {
+  const c = navigator.serviceWorker?.controller;
+  if (!c) return;
+  versaoRodando = await new Promise((resolver) => {
+    const canal = new MessageChannel();
+    const t = setTimeout(() => resolver(null), 1500);
+    canal.port1.onmessage = (e) => { clearTimeout(t); resolver(typeof e.data === "string" ? e.data : null); };
+    c.postMessage("versao?", [canal.port2]);
+  });
+}
+
+function observarWorker(w) {
+  if (!w) return;
+  const marcar = () => {
+    if (w.state === "installed" && navigator.serviceWorker.controller) { atualizacao.worker = w; anunciarAtualizacao(); }
+    if (w.state === "redundant" && atualizacao.worker === w) { atualizacao.worker = null; anunciarAtualizacao(); }
+  };
+  w.addEventListener("statechange", marcar);
+  marcar();
+}
+
+export async function verificarAtualizacao(motivo = "manual") {
+  if (!armazem.estado.online && motivo !== "manual") return;
+  atualizacao.ultimaVerificacao = new Date().toISOString();
+  try { if (registroSw) await registroSw.update(); } catch { /* sem rede ou sw.js indisponível */ }
+  try {
+    const s = await api.get("/api/v1/saude");
+    if (!versaoRodando) await descobrirVersaoRodando();
+    atualizacao.versaoNova = s.versao !== versaoApp() ? s.versao : null;
+  } catch { /* offline: fica como está */ }
+  if (registroSw?.waiting) observarWorker(registroSw.waiting);
+  anunciarAtualizacao();
+  return temAtualizacao();
+}
+
+export async function aplicarAtualizacao() {
+  try { await salvarPendentes(); } catch { /* nada pendente */ }
+  const w = atualizacao.worker || registroSw?.waiting;
+  if (w) { w.postMessage("pular-espera"); return; }          // o controllerchange recarrega
+  /* Servidor anuncia versão nova mas o worker não veio: força a busca e recarrega. */
+  try { await registroSw?.update(); } catch { /* segue */ }
+  setTimeout(() => window.location.reload(), 300);
+}
+
+function renderChipAtualizacao() {
+  const chip = document.getElementById("chip-atualizacao");
+  if (!chip) return;
+  const ha = temAtualizacao();
+  chip.classList.toggle("escondido", !ha);
+  chip.textContent = ha ? `Atualização pronta${atualizacao.versaoNova ? ` · ${atualizacao.versaoNova}` : ""}` : "";
+  chip.title = ha ? "Toque para atualizar o aplicativo (leva um segundo; suas anotações ficam guardadas)." : "";
+}
+
 async function registrarSw() {
   if (!("serviceWorker" in navigator)) return;
   try {
     registroSw = await navigator.serviceWorker.register("/sw.js");
-    registroSw.addEventListener("updatefound", () => {
-      const novo = registroSw.installing;
-      if (!novo) return;
-      novo.addEventListener("statechange", () => {
-        if (novo.state === "installed" && navigator.serviceWorker.controller) {
-          avisarComAcao("Versão nova do LA Carta pronta.", "Atualizar", () => novo.postMessage("pular-espera"));
-        }
-      });
-    });
+    await descobrirVersaoRodando();
+    if (registroSw.waiting) observarWorker(registroSw.waiting);   // já havia uma esperando de outra sessão
+    registroSw.addEventListener("updatefound", () => observarWorker(registroSw.installing));
     let recarregando = false;
     navigator.serviceWorker.addEventListener("controllerchange", () => { if (recarregando) return; recarregando = true; window.location.reload(); });
   } catch (e) { console.warn("service worker não registrado:", e.message); }
+  document.getElementById("chip-atualizacao")?.addEventListener("click", () => void aplicarAtualizacao());
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") void verificarAtualizacao("visivel"); });
+  window.addEventListener("online", () => void verificarAtualizacao("rede"));
+  setInterval(() => void verificarAtualizacao("periodica"), VERIFICAR_A_CADA_MS);
+  setTimeout(() => void verificarAtualizacao("abertura"), 4000);
 }
 
 /* ---------- menu do usuário ---------- */
@@ -192,9 +273,12 @@ function montarMenuUsuario() {
     el("div", { classe: "divisoria" }),
     el("button", { classe: "item", type: "button", aoClicar: () => { fechar(); void instalarNoTablet(); } }, icone("instalar", 18), el("span", {}, "Instalar no tablet", el("small", {}, jaInstalado() ? "já instalado neste aparelho" : "abre como aplicativo, em tela cheia"))),
     el("button", { classe: "item", type: "button", aoClicar: () => { fechar(); void baixarParaOffline(); } }, icone("baixar", 18), el("span", {}, "Baixar para usar sem internet", el("small", {}, baixado ? `cópia local de ${fmtRelativo(baixado)}` : "texto inteiro + suas anotações"))),
+    temAtualizacao()
+      ? el("button", { classe: "item destaque", type: "button", aoClicar: () => { fechar(); void aplicarAtualizacao(); } }, icone("atualizar", 18), el("span", {}, `Atualizar o aplicativo${atualizacao.versaoNova ? ` para a ${atualizacao.versaoNova}` : ""}`, el("small", {}, "pronta para instalar · leva um segundo")))
+      : el("button", { classe: "item", type: "button", aoClicar: async () => { fechar(); const ha = await verificarAtualizacao("manual"); if (!ha) avisar(`Você está na versão mais recente (${versaoApp()}).`); } }, icone("atualizar", 18), el("span", {}, "Verificar atualização", el("small", {}, atualizacao.ultimaVerificacao ? `última conferência ${fmtRelativo(atualizacao.ultimaVerificacao)}` : `versão ${versaoApp()}`))),
     el("div", { classe: "divisoria" }),
     el("button", { classe: "item perigo", type: "button", aoClicar: async () => { fechar(); try { await api.post("/api/v1/sair"); } catch { /* sessão já podia estar morta */ } mostrarLogin(); } }, icone("x", 18), "Sair"),
-    el("div", { classe: "rodape" }, `LA Carta v${eu.versao ?? ""} · ${sumarioDados?.atualizado_ate ?? ""}`),
+    el("div", { classe: "rodape" }, `LA Carta v${versaoApp()} · ${sumarioDados?.atualizado_ate ?? ""}`),
   );
   botao.onclick = (e) => {
     e.stopPropagation();

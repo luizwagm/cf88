@@ -154,6 +154,12 @@ label { display: flex; flex-direction: column; gap: .35rem; font-size: .86rem; c
 .dropdown button.item small { color: var(--tinta-3); font-size: .74rem; }
 .chip-rede { height: 32px; padding: 0 .75rem; border-radius: 999px; border: 0; font-size: .78rem; font-weight: 700; cursor: pointer; white-space: nowrap; margin-right: .2rem; }
 .chip-rede.offline { background: var(--tinta); color: var(--papel); }
+.chip-atualizacao { height: 32px; padding: 0 .8rem 0 .6rem; border-radius: 999px; border: 1px solid var(--acento); background: var(--acento-suave); color: var(--acento); font-size: .78rem; font-weight: 700; cursor: pointer; white-space: nowrap; margin-right: .2rem; display: inline-flex; align-items: center; gap: .45rem; }
+.chip-atualizacao::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--acento); animation: pulsar-ponto 1.6s ease-in-out infinite; }
+.chip-atualizacao:hover { background: var(--acento); color: #fff; }
+.chip-atualizacao:hover::before { background: #fff; }
+.dropdown button.item.destaque { background: var(--acento-suave); color: var(--acento); }
+@keyframes pulsar-ponto { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .55; } }
 .chip-rede.pendente { background: var(--ouro-suave); color: #8a6a17; }
 .progresso.baixa { height: 10px; margin: 1rem 0 .5rem; }
 .baixa-rotulo { margin: 0; color: var(--tinta-3); font-size: .86rem; min-height: 1.3em; }
