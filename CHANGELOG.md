@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1 — 2026-09-23
+
+- `backups/` (cópia diária) entra no `.gitignore`: sem isso o `deploy.sh` via a pasta como
+  arquivo não commitado no servidor e recusava a entrega.
+
 ## 1.4.0 — 2026-09-22
 
 - O aplicativo **observa atualizações**: confere ao abrir, ao voltar ao primeiro plano, ao
