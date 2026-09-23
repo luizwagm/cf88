@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 — 2026-09-22
+
+- Sumário (gaveta e tela cheia) mostra os artigos de cada página como pastilhas
+  ("1º", "2º", "103-A"…); cada uma abre a página já no artigo. O sumário leve passou a
+  trazer id e rótulo de cada artigo (o cliente aceita a forma antiga em cache).
+
 ## 1.2.0 — 2026-09-22
 
 - **Aplicativo instalável (PWA)**: manifesto, ícones, service worker com a casca em cache

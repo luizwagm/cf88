@@ -78,7 +78,7 @@ export function sumarioLeve() {
     sumario: c.sumario,
     paginas: c.paginas.map((p) => ({
       id: p.id, livro: p.livro, ordem: p.ordem, rotulo: p.rotulo, nome: p.nome, trilha: p.trilha,
-      palavras: p.palavras, artigos: p.artigos.map((a) => a.rotulo),
+      palavras: p.palavras, artigos: p.artigos.map((a) => ({ id: a.id, rotulo: a.rotulo })),
       anterior: p.anterior, proxima: p.proxima,
     })),
   };

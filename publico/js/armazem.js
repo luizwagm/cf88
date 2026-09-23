@@ -296,9 +296,11 @@ export function acharArtigoNoSumario(consulta, sumario) {
   const numero = Number(m[2]);
   const sufixo = m[3] ? `-${m[3].toUpperCase()}` : "";
   const rotulo = `Art. ${numero}${numero < 10 ? "º" : ""}${sufixo}`;
-  const p = sumario.paginas.find((x) => x.livro === livro && x.artigos.includes(rotulo));
+  const rotuloDe = (a) => (typeof a === "string" ? a : a.rotulo);
+  const p = sumario.paginas.find((x) => x.livro === livro && x.artigos.some((a) => rotuloDe(a) === rotulo));
   if (!p) return null;
-  return { pagina_id: p.id, artigo_id: `${livro}-art-${numero}${sufixo.toLowerCase()}`, rotulo };
+  const achado = p.artigos.find((a) => rotuloDe(a) === rotulo);
+  return { pagina_id: p.id, artigo_id: (achado && achado.id) || `${livro}-art-${numero}${sufixo.toLowerCase()}`, rotulo };
 }
 
 /* ---------- baixar tudo para uso offline ---------- */

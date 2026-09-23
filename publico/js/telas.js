@@ -73,6 +73,24 @@ function linhaPagina(p) {
 }
 
 /* ============================ sumário ============================ */
+/* "Art. 5º" → "5º"; "Art. 103-A" → "103-A"; "Arts. 108 a 112" → "108 a 112". */
+const rotuloCurto = (r) => String(r).replace(/^Arts?\.\s*/, "");
+
+/* As pastilhas dos artigos de uma página: cada uma abre a página já no artigo. */
+function pastilhasDeArtigos(paginaId, aoAbrir) {
+  const p = sumario()?.paginas.find((x) => x.id === paginaId);
+  if (!p || !p.artigos?.length) return null;
+  const nomes = p.artigos.map((a) => (typeof a === "string" ? a : a.rotulo));
+  if (nomes.length === 1 && !/^Art/.test(nomes[0])) return null;   // o Preâmbulo não tem artigo
+  return el("div", { classe: "no-artigos", "aria-label": "Artigos desta página" },
+    el("span", { classe: "no-artigos-rotulo" }, p.artigos.length === 1 ? "Art." : "Arts."),
+    ...p.artigos.map((a) => {
+      const rotulo = typeof a === "string" ? a : a.rotulo;
+      const id = typeof a === "string" ? null : a.id;
+      return el("a", { classe: "chip-art", href: id ? `#/ler/${paginaId}?art=${encodeURIComponent(id)}` : `#/ler/${paginaId}`, title: rotulo, aoClicar: aoAbrir }, rotuloCurto(rotulo));
+    }));
+}
+
 export function arvoreSumario(nos, contagens = new Map(), opcoes = {}) {
   const atual = (window.location.hash.split("?")[0].match(/^#\/ler\/([^/]+)/) || [])[1];
   const contem = (no) => (no.pagina && no.pagina === atual) || no.filhos.some(contem);
@@ -91,6 +109,7 @@ export function arvoreSumario(nos, contagens = new Map(), opcoes = {}) {
       temFilhos ? el("button", { classe: "no-alterna", type: "button", "aria-label": "Abrir ou fechar", aoClicar: (e) => e.currentTarget.closest(".no").classList.toggle("aberto") }, icone("seta", 16)) : null,
     );
     return el("div", { classe: `no nivel-${nivel} ${aberto ? "aberto" : ""}` }, linha,
+      no.pagina ? pastilhasDeArtigos(no.pagina, opcoes.aoAbrir) : null,
       temFilhos ? el("div", { classe: "no-filhos" }, ...no.filhos.map((f) => render(f, nivel + 1))) : null);
   };
   return nos.map((n) => render(n, 0));

@@ -170,7 +170,7 @@ label { display: flex; flex-direction: column; gap: .35rem; font-size: .86rem; c
 }
 .gaveta.aberta { transform: none; }
 .gaveta-cabecalho { display: flex; align-items: center; justify-content: space-between; padding: .6rem .6rem .6rem 1.1rem; border-bottom: 1px solid var(--papel-3); font-family: var(--serifa); font-size: 1.05rem; }
-.sumario-nav { overflow: auto; padding: .5rem .5rem 2rem; -webkit-overflow-scrolling: touch; }
+.sumario-nav { overflow-y: auto; overflow-x: hidden; padding: .5rem .5rem 2rem; -webkit-overflow-scrolling: touch; }
 .sumario-nav .no { margin: 0; }
 .sumario-nav .no-linha { display: flex; align-items: stretch; border-radius: 10px; }
 .sumario-nav .no-linha:hover { background: var(--papel-2); }
@@ -184,6 +184,12 @@ label { display: flex; flex-direction: column; gap: .35rem; font-size: .86rem; c
 .sumario-nav .no-filhos { display: none; margin-left: .9rem; border-left: 1px solid var(--papel-3); padding-left: .2rem; }
 .sumario-nav .no.aberto > .no-filhos { display: block; }
 .sumario-nav .no.nivel-0 > .no-linha .no-nome { font-weight: 600; }
+.sumario-nav .no-artigos { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 0 .6rem .55rem 2rem; }
+.sumario-nav .no-artigos-rotulo { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--tinta-3); margin-right: 2px; }
+.sumario-nav .chip-art { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 24px; padding: 0 7px; border-radius: 999px; background: var(--papel-2); border: 1px solid var(--papel-3); color: var(--tinta-2); font-size: .74rem; font-weight: 700; font-variant-numeric: tabular-nums; transition: background var(--transicao), color var(--transicao), border-color var(--transicao); }
+.sumario-nav .chip-art:hover { background: var(--acento-suave); border-color: var(--acento); color: var(--acento); text-decoration: none; }
+.sumario-nav .no-linha.ativo + .no-artigos .chip-art { background: #fff; }
+.sumario-tela .no-artigos { padding-left: 1.2rem; }
 .sumario-nav .selo-contagem { align-self: center; margin-right: .5rem; font-size: .7rem; color: var(--ouro); font-weight: 700; }
 .sumario-nav .marcado { color: var(--acento); }
 

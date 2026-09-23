@@ -73,6 +73,9 @@ describe("conteúdo da Constituição", () => {
     const s = sumarioLeve();
     assert.equal(s.paginas.length, texto().paginas.length);
     assert.ok(!("dispositivos" in (s.paginas[0] as object)));
+    const t1 = s.paginas.find((p) => p.id === "cf-ti")!;
+    assert.deepEqual(t1.artigos.map((a) => a.rotulo), ["Art. 1º", "Art. 2º", "Art. 3º", "Art. 4º"]);
+    assert.equal(t1.artigos[0]!.id, "cf-art-1");
     const folhas: string[] = [];
     const andar = (n: { pagina?: string; filhos: typeof s.sumario }) => { if (n.pagina) folhas.push(n.pagina); n.filhos.forEach(andar); };
     s.sumario.forEach(andar);
