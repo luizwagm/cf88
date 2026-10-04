@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.5.0 — 2026-10-04
+
+**Vade Mecum.** O caderno deixa de ser só a Constituição: 83 leis federais entram ao lado
+dela, com o texto compilado do Planalto baixado em 04/10/2026 (13.161 artigos, 2.422
+páginas, 12,5 MB).
+
+- **Extrator do Planalto** (`ferramentas/leis/`, Node puro, sem dependências): tokenizador
+  tolerante ao HTML de lá (cp1252 e UTF-16, `</body>` no meio, sobrescrito "o" → º, texto
+  riscado descartado), cabeçalhos em árvore (Parte › Livro › Título › Subtítulo › Capítulo ›
+  Seção › Subseção), rubricas, penas, faixas de artigos revogados e **texto citado de outras
+  leis** mantido dentro do artigo que altera. Cada lei só entra se fechar a conta do último
+  artigo esperado. `npm run leis -- --atualizar` baixa tudo de novo.
+- **Ids por caminho** (`cp-art-121-p2-i6`): uma alteração futura na lei não desloca os ids
+  vizinhos, então as anotações sobrevivem às atualizações do texto. A Constituição mantém
+  os ids que já tinha.
+- **Biblioteca** por matéria com filtro, "Em estudo", tela de cada lei (identificação,
+  ementa, data do texto, última alteração incorporada, sumário), leitor com rubrica do
+  artigo, pena e notas de alteração (que se pode esconder em Ajustes).
+- **Busca** no Vade Mecum inteiro, com contagem por lei e filtro; "121 cp", "cc 1.639",
+  "art. 5º" (na lei aberta) vão direto ao artigo.
+- **Offline por lei**: escolhe-se o que baixar (uma lei, uma matéria, tudo); cada obra vem
+  numa resposta só. Resumo, revisão e busca locais entendem várias obras.
+- API: `/texto/obras`, `/texto/sumario?obra=`, `/texto/obras/:id/completo`, busca e salto
+  com `obra`. 17 provas novas (extrator contra HTML de teste + o conteúdo gerado).
+
 ## 1.4.1 — 2026-09-23
 
 - `backups/` (cópia diária) entra no `.gitignore`: sem isso o `deploy.sh` via a pasta como

@@ -10,11 +10,13 @@ import { api, definirQuedaDeSessao } from "./api.js";
 import { el, preencher, avisar, avisarComAcao, icone, abrirModal, fecharModal, fmtRelativo } from "./ui.js";
 import * as voz from "./voz.js";
 import * as armazem from "./armazem.js";
-import { telaEstante, telaSumario, telaAnotacoes, telaBusca, telaAjustes, arvoreSumario } from "./telas.js";
+import { telaEstante, telaSumario, telaObra, telaAnotacoes, telaBusca, telaAjustes, arvoreSumario } from "./telas.js";
 import { telaLeitor, limparLeitor, salvarPendentes } from "./leitor.js";
 
 let eu = null;
-let sumarioDados = null;
+let catalogo = { categorias: [], obras: [] };   // todas as leis do Vade Mecum
+const sumarios = new Map();                     // obra → sumário (carregado sob demanda)
+let obraAberta = "cf";                          // a lei em que o estudante está
 let preferencias = {};
 let promptInstalacao = null;      // o evento beforeinstallprompt, guardado até o toque no menu
 let registroSw = null;
@@ -25,7 +27,32 @@ const ouvintesAtualizacao = new Set();
 export function aoMudarAtualizacao(fn) { ouvintesAtualizacao.add(fn); return () => ouvintesAtualizacao.delete(fn); }
 
 export function usuarioAtual() { return eu; }
-export function sumario() { return sumarioDados; }
+/* ---------- o Vade Mecum: obras e sumários ---------- */
+export function obras() { return catalogo; }
+export function obraAtual() { return obraAberta; }
+export function metaDaObra(id) { return catalogo.obras.find((o) => o.id === id) ?? null; }
+/* O sumário da obra aberta (já carregado pelo roteador antes de a tela nascer). */
+export function sumario() { return sumarios.get(obraAberta) ?? null; }
+export async function sumarioDe(id) {
+  if (!sumarios.has(id)) sumarios.set(id, await armazem.lerSumario(id));
+  return sumarios.get(id);
+}
+export function definirObraAtual(id) {
+  if (!metaDaObra(id)) return;
+  obraAberta = id;
+  try { localStorage.setItem("carta.obra", id); } catch { /* sem armazenamento */ }
+  const m = metaDaObra(id);
+  const campo = document.getElementById("busca-rapida-campo");
+  if (campo) campo.placeholder = `Buscar ou ir para o art. … (${m.sigla})`;
+}
+/* De que lei é a página? O prefixo do id diz ("cp-…", "cc-…"; a Constituição usa "cf-" e "adct-"). */
+export function obraDaPagina(paginaId) {
+  let melhor = null;
+  for (const o of catalogo.obras) for (const p of o.prefixos ?? [o.id]) {
+    if ((paginaId === p || paginaId.startsWith(p + "-")) && (!melhor || p.length > melhor.p.length)) melhor = { o, p };
+  }
+  return melhor ? melhor.o.id : "cf";
+}
 export function prefs() { return preferencias; }
 export function atualizarNome(nome) { eu.nome = nome; void armazem.guardar("eu", eu); montarMenuUsuario(); }
 
@@ -37,12 +64,14 @@ export async function salvarPrefs(parcial) {
 }
 function aplicarPrefs() {
   document.documentElement.style.setProperty("--tamanho-texto", `${preferencias.tamanho_fonte || 19}px`);
+  document.documentElement.classList.toggle("sem-notas", preferencias.notas_alteracao === "0");
   voz.configurarVoz({ voz: preferencias.voz || "", velocidade: Number(preferencias.velocidade_voz) || 1 });
 }
 
 const ROTAS = [
   { padrao: /^#\/$/, tela: telaEstante },
   { padrao: /^#\/sumario$/, tela: telaSumario },
+  { padrao: /^#\/obra\/([^/?]+)$/, tela: telaObra },
   { padrao: /^#\/anotacoes$/, tela: telaAnotacoes, menu: "#/anotacoes" },
   { padrao: /^#\/busca$/, tela: telaBusca },
   { padrao: /^#\/ajustes$/, tela: telaAjustes },
@@ -66,6 +95,12 @@ async function navegar() {
   const partes = (hash.match(rota.padrao) || []).slice(1).map(decodeURIComponent);
   if (rota.tela !== telaLeitor) { limparLeitor(); voz.parar(); }
   try {
+    /* a página manda na obra aberta: o sumário dela precisa estar à mão antes de a folha nascer */
+    if (rota.tela === telaLeitor) {
+      const id = obraDaPagina(partes[0]);
+      await sumarioDe(id);
+      definirObraAtual(id);
+    }
     await rota.tela(container, partes, query);
     if (rota.tela !== telaLeitor) { container.focus({ preventScroll: true }); window.scrollTo(0, 0); }
     marcarSumarioAtual();
@@ -78,8 +113,14 @@ async function navegar() {
 /* ---------- gaveta do sumário ---------- */
 let contagensSumario = new Map();
 async function montarGaveta() {
-  try { const r = await armazem.lerResumo(sumarioDados); contagensSumario = new Map(r.paginas.map((p) => [p.pagina_id, p])); } catch { /* sem contagens */ }
-  preencher(document.getElementById("sumario-nav"), ...arvoreSumario(sumarioDados.sumario, contagensSumario, { aoAbrir: fecharGaveta }));
+  const s = await sumarioDe(obraAberta);
+  const m = metaDaObra(obraAberta);
+  preencher(document.getElementById("gaveta-obra"),
+    el("span", { classe: "obra-sigla" }, m?.sigla ?? ""),
+    el("span", { classe: "gaveta-obra-nome" }, m?.nome ?? ""),
+    el("a", { classe: "gaveta-trocar", href: "#/", aoClicar: fecharGaveta }, "trocar de lei"));
+  try { const r = await armazem.lerResumo(); contagensSumario = new Map(r.paginas.map((p) => [p.pagina_id, p])); } catch { /* sem contagens */ }
+  preencher(document.getElementById("sumario-nav"), ...arvoreSumario(s.sumario, contagensSumario, { aoAbrir: fecharGaveta, sumario: s }));
 }
 function abrirGaveta() {
   void montarGaveta();
@@ -137,28 +178,61 @@ async function instalarNoTablet() {
     [el("button", { classe: "botao botao-primario", type: "button", aoClicar: fecharModal }, "Entendi")]);
 }
 
-async function baixarParaOffline() {
+/* Baixa as leis pedidas para o tablet, com a barra de progresso. */
+export async function baixarObras(ids) {
   const barra = el("span", { style: "width: 0%" });
   const rotulo = el("p", { classe: "baixa-rotulo" }, "Preparando…");
-  const modal = abrirModal("Baixar o caderno",
+  const modal = abrirModal(ids.length === 1 ? `Baixar ${metaDaObra(ids[0])?.sigla ?? "a lei"}` : `Baixar ${ids.length} leis`,
     el("div", {},
-      el("p", {}, "Baixa o texto inteiro da Constituição e todas as suas anotações para o tablet. Depois disso, ler, escrever e ouvir funcionam sem internet; o que você anotar sobe quando a conexão voltar."),
+      el("p", {}, "O texto inteiro e as suas anotações ficam guardados no tablet. Depois disso, ler, escrever e ouvir funcionam sem internet; o que você anotar sobe quando a conexão voltar."),
       el("div", { classe: "progresso baixa" }, barra),
       rotulo,
     ), null, { semFoco: true });
   modal.querySelector(".botao-icone")?.classList.add("escondido");
   try {
-    const r = await armazem.baixarTudo((feitas, total, p) => {
-      barra.style.setProperty("width", `${Math.round((feitas / total) * 100)}%`);
-      rotulo.textContent = `${feitas}/${total} · ${p.rotulo}${p.nome ? " — " + p.nome : ""}`;
+    const r = await armazem.baixarObras(ids, (feitas, total, meta, fase) => {
+      barra.style.setProperty("width", `${Math.round(((feitas + (fase === "texto" ? 0.4 : 0)) / total) * 100)}%`);
+      rotulo.textContent = `${Math.min(feitas + (fase === "texto" ? 1 : 0), total)}/${total} · ${meta?.sigla ?? ""} — ${meta?.nome ?? ""}`;
     });
     barra.style.setProperty("width", "100%");
-    rotulo.textContent = `Pronto: ${r.paginas} páginas e todas as anotações guardadas no tablet.`;
-    setTimeout(() => { fecharModal(); montarMenuUsuario(); avisar("Caderno baixado. Pode ler sem internet."); }, 900);
+    rotulo.textContent = `Pronto: ${r.obras} lei(s), ${r.paginas.toLocaleString("pt-BR")} páginas guardadas no tablet.`;
+    for (const id of ids) sumarios.delete(id);
+    setTimeout(() => { fecharModal(); montarMenuUsuario(); avisar("Baixado. Pode ler sem internet."); void navegar(); }, 900);
   } catch (e) {
     fecharModal();
     avisar(e.status === 0 ? "Sem internet: o download precisa de conexão." : `Não consegui baixar: ${e.message}`, "erro");
   }
+}
+
+/* Escolher o que levar: a lei aberta, as que já estão em estudo, uma matéria inteira ou tudo. */
+async function baixarParaOffline() {
+  const baixadas = new Set(await armazem.obrasBaixadas());
+  let emEstudo = new Set();
+  try { emEstudo = new Set(((await armazem.lerResumo()).obras ?? []).map((o) => o.obra_id)); } catch { /* sem resumo */ }
+  const marcadas = new Set([obraAberta, "cf", ...emEstudo, ...baixadas]);
+  const corpo = el("div", { classe: "escolha-obras" });
+  const contador = el("span", {});
+  const desenhar = () => {
+    const mb = catalogo.obras.filter((o) => marcadas.has(o.id)).reduce((s, o) => s + o.palavras, 0) * 9 / 1_000_000;
+    contador.textContent = `${marcadas.size} lei(s) · cerca de ${mb < 1 ? "1" : mb.toFixed(0)} MB`;
+    preencher(corpo, ...catalogo.categorias.map((c) => {
+      const lista = catalogo.obras.filter((o) => o.categoria === c);
+      if (!lista.length) return null;
+      const todas = lista.every((o) => marcadas.has(o.id));
+      return el("section", {},
+        el("button", { type: "button", classe: "escolha-categoria", aoClicar: () => { for (const o of lista) { if (todas) marcadas.delete(o.id); else marcadas.add(o.id); } desenhar(); } }, c, el("small", {}, todas ? "desmarcar" : "marcar todas")),
+        el("div", { classe: "escolha-lista" }, ...lista.map((o) => el("button", { type: "button", classe: `escolha-obra ${marcadas.has(o.id) ? "marcada" : ""}`, title: o.nome, aoClicar: () => { if (marcadas.has(o.id)) marcadas.delete(o.id); else marcadas.add(o.id); desenhar(); } },
+          o.sigla, baixadas.has(o.id) ? el("small", {}, "offline") : null))));
+    }));
+  };
+  desenhar();
+  abrirModal("Baixar para usar sem internet",
+    el("div", {}, el("p", {}, "Escolha as leis que vão com você. As que já estão no tablet são atualizadas (texto e anotações)."), corpo),
+    [
+      contador,
+      el("button", { classe: "botao", type: "button", aoClicar: () => { for (const o of catalogo.obras) marcadas.add(o.id); desenhar(); } }, "Marcar tudo"),
+      el("button", { classe: "botao botao-primario", type: "button", aoClicar: () => { const ids = catalogo.obras.filter((o) => marcadas.has(o.id)).map((o) => o.id); if (!ids.length) return avisar("Marque pelo menos uma lei.", "erro"); void baixarObras(ids); } }, icone("baixar", 18), "Baixar"),
+    ], { larga: true, semFoco: true });
 }
 
 /* ---------- service worker (a casca do aplicativo) e atualização ----------
@@ -265,20 +339,20 @@ function montarMenuUsuario() {
   const baixado = armazem.estado.baixadoEm;
   preencher(drop,
     el("div", { classe: "cabec" }, el("b", {}, eu.nome), el("span", {}, eu.email)),
-    el("a", { href: "#/", aoClicar: fechar }, icone("livro", 18), "Estante"),
-    el("a", { href: "#/sumario", aoClicar: fechar }, icone("seta", 18), "Sumário"),
+    el("a", { href: "#/", aoClicar: fechar }, icone("livro", 18), "Biblioteca"),
+    el("a", { href: "#/sumario", aoClicar: fechar }, icone("seta", 18), `Sumário · ${metaDaObra(obraAberta)?.sigla ?? ""}`),
     el("a", { href: "#/anotacoes", aoClicar: fechar }, icone("nota", 18), "Minhas anotações"),
     el("a", { href: "#/busca", aoClicar: fechar }, icone("buscar", 18), "Buscar"),
     el("a", { href: "#/ajustes", aoClicar: fechar }, icone("engrenagem", 18), "Ajustes"),
     el("div", { classe: "divisoria" }),
     el("button", { classe: "item", type: "button", aoClicar: () => { fechar(); void instalarNoTablet(); } }, icone("instalar", 18), el("span", {}, "Instalar no tablet", el("small", {}, jaInstalado() ? "já instalado neste aparelho" : "abre como aplicativo, em tela cheia"))),
-    el("button", { classe: "item", type: "button", aoClicar: () => { fechar(); void baixarParaOffline(); } }, icone("baixar", 18), el("span", {}, "Baixar para usar sem internet", el("small", {}, baixado ? `cópia local de ${fmtRelativo(baixado)}` : "texto inteiro + suas anotações"))),
+    el("button", { classe: "item", type: "button", aoClicar: () => { fechar(); void baixarParaOffline(); } }, icone("baixar", 18), el("span", {}, "Baixar para usar sem internet", el("small", {}, baixado ? `cópia local de ${fmtRelativo(baixado)} · escolher leis` : "escolha as leis + suas anotações"))),
     temAtualizacao()
       ? el("button", { classe: "item destaque", type: "button", aoClicar: () => { fechar(); void aplicarAtualizacao(); } }, icone("atualizar", 18), el("span", {}, `Atualizar o aplicativo${atualizacao.versaoNova ? ` para a ${atualizacao.versaoNova}` : ""}`, el("small", {}, "pronta para instalar · leva um segundo")))
       : el("button", { classe: "item", type: "button", aoClicar: async () => { fechar(); const ha = await verificarAtualizacao("manual"); if (!ha) avisar(`Você está na versão mais recente (${versaoApp()}).`); } }, icone("atualizar", 18), el("span", {}, "Verificar atualização", el("small", {}, atualizacao.ultimaVerificacao ? `última conferência ${fmtRelativo(atualizacao.ultimaVerificacao)}` : `versão ${versaoApp()}`))),
     el("div", { classe: "divisoria" }),
     el("button", { classe: "item perigo", type: "button", aoClicar: async () => { fechar(); try { await api.post("/api/v1/sair"); } catch { /* sessão já podia estar morta */ } mostrarLogin(); } }, icone("x", 18), "Sair"),
-    el("div", { classe: "rodape" }, `LA Carta v${versaoApp()} · ${sumarioDados?.atualizado_ate ?? ""}`),
+    el("div", { classe: "rodape" }, `LA Carta v${versaoApp()} · ${catalogo.obras.length} leis`),
   );
   botao.onclick = (e) => {
     e.stopPropagation();
@@ -293,14 +367,15 @@ function montarMenuUsuario() {
 async function buscaRapida(termo) {
   const t = termo.trim();
   if (!t) return;
-  if (/^(adct\s*)?(arts?\.?\s*)?\d{1,3}(\s*-?\s*[a-e])?(\s*(do\s+)?adct)?$/i.test(t)) {
+  /* tem número e parece referência de artigo ("121", "art. 5º", "121 cp", "cc 1.639", "adct 2") */
+  if (t.length <= 40 && /[0-9]/.test(t) && !/[0-9]{5,}/.test(t)) {
     try {
-      const r = await api.get(`/api/v1/texto/artigo?q=${encodeURIComponent(t)}`);
+      const r = await api.get(`/api/v1/texto/artigo?q=${encodeURIComponent(t)}&obra=${encodeURIComponent(obraAberta)}`);
       irPara(`#/ler/${r.pagina_id}?art=${encodeURIComponent(r.artigo_id)}`);
       return;
     } catch (e) {
       if (e.status === 0) {
-        const local = armazem.acharArtigoNoSumario(t, sumarioDados);
+        const local = armazem.acharArtigoNoSumario(t, sumario());
         if (local) { irPara(`#/ler/${local.pagina_id}?art=${encodeURIComponent(local.artigo_id)}`); return; }
       }
     }
@@ -317,10 +392,15 @@ function mostrarLogin() {
 }
 
 async function mostrarAplicacao() {
-  const [usuario, s, p] = await Promise.all([armazem.lerEu(), armazem.lerSumario(), armazem.lerPrefs()]);
+  const [usuario, cat, p] = await Promise.all([armazem.lerEu(), armazem.lerObras(), armazem.lerPrefs()]);
   eu = usuario;
-  sumarioDados = s;
+  catalogo = cat;
   preferencias = p;
+  let ultima = "cf";
+  try { ultima = localStorage.getItem("carta.obra") || "cf"; } catch { /* sem armazenamento */ }
+  if (!metaDaObra(ultima)) ultima = "cf";
+  try { await sumarioDe(ultima); } catch { ultima = "cf"; await sumarioDe("cf"); }
+  definirObraAtual(ultima);
   aplicarPrefs();
   document.getElementById("tela-login").classList.add("escondido");
   document.getElementById("aplicacao").classList.remove("escondido");

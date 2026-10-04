@@ -11,7 +11,7 @@ import { el, preencher, icone, avisar, abrirModal, fecharModal, confirmar, palet
 import { Tinta } from "./tinta.js";
 import * as voz from "./voz.js";
 import * as armazem from "./armazem.js";
-import { prefs, salvarPrefs, sumario } from "./app.js";
+import { prefs, salvarPrefs, sumario, metaDaObra, obraDaPagina } from "./app.js";
 
 let estado = null;   // { pagina, marcacoes, notas, leitura, tinta, folha, leitor, estojo, barra, popover, painel }
 
@@ -65,12 +65,12 @@ export async function telaLeitor(container, partes, query) {
 
   /* cabeçalho do topo */
   preencher(document.getElementById("topo-titulo"),
-    el("span", { classe: "trilha" }, pagina.trilha.slice(0, -1).map((t) => t.rotulo).join(" › ") || (pagina.livro === "adct" ? "ADCT" : "Constituição")),
+    el("span", { classe: "trilha" }, [metaDaObra(obraDaPagina(pagina.id))?.sigla ?? "", ...pagina.trilha.slice(0, -1).map((t) => t.rotulo)].filter(Boolean).join(" › ")),
     el("span", { classe: "nome" }, `${pagina.rotulo}${pagina.nome ? " — " + pagina.nome : ""}`),
   );
 
   const folha = el("article", { classe: `folha ${sentido === "tras" ? "virar-tras" : ""}` },
-    el("div", { classe: "folha-trilha" }, pagina.trilha.map((t) => `${t.rotulo}${t.nome ? " · " + t.nome : ""}`).join("  ›  ")),
+    el("div", { classe: "folha-trilha" }, el("a", { classe: "folha-obra", href: `#/obra/${obraDaPagina(pagina.id)}` }, metaDaObra(obraDaPagina(pagina.id))?.nome ?? ""), pagina.trilha.length > 1 ? "  ›  " + pagina.trilha.slice(0, -1).map((t) => `${t.rotulo}${t.nome ? " · " + t.nome : ""}`).join("  ›  ") : ""),
     el("header", { classe: "folha-titulo" },
       el("span", { classe: "rotulo" }, pagina.rotulo),
       el("h1", {}, pagina.nome || (pagina.livro === "adct" ? "Ato das Disposições Constitucionais Transitórias" : pagina.rotulo)),
@@ -147,6 +147,7 @@ function piscar(alvo) {
 /* ============================ render ============================ */
 function renderArtigo(a) {
   return el("section", { classe: "artigo", "data-artigo-id": a.id },
+    a.rubrica ? el("div", { classe: "artigo-rubrica" }, a.rubrica) : null,
     el("button", { classe: "artigo-rotulo", type: "button", title: "Ouvir este artigo", "aria-label": `Ouvir ${a.rotulo}`, aoClicar: () => ouvirArtigo(a) }, a.rotulo, icone("ouvir", 16)),
     ...a.dispositivos.map((d) => renderBloco(a, d)),
   );
@@ -503,8 +504,8 @@ function itensDoArtigo(a) {
   const itens = [];
   for (const d of a.dispositivos) {
     const elx = estado.folha.querySelector(`[data-id="${CSS.escape(d.id)}"]`);
-    const rotulo = d.tipo === "caput" ? rotuloFalado(a) : rotuloFalado(a, d);
-    itens.push({ texto: `${rotulo}. ${d.texto}`, elemento: elx });
+    const rotulo = d.tipo === "caput" ? `${a.rubrica ? a.rubrica + ". " : ""}${rotuloFalado(a)}` : rotuloFalado(a, d);
+    itens.push({ texto: rotulo ? `${rotulo}. ${d.texto}` : d.texto, elemento: elx });
   }
   return itens;
 }

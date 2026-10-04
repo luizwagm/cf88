@@ -243,9 +243,59 @@ label { display: flex; flex-direction: column; gap: .35rem; font-size: .86rem; c
 .linha-pagina .contagens { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: flex-end; }
 .linha-pagina .quando { color: var(--tinta-3); font-size: .78rem; }
 
+/* ---------- Biblioteca (o Vade Mecum) ---------- */
+.biblioteca-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: 2rem 0 .4rem; }
+.biblioteca-cabecalho h2 { font-size: 1.35rem; margin: 0; }
+.filtro-obras { width: min(360px, 100%); height: 42px; border-radius: 999px; padding: 0 1rem; }
+.categoria { margin: 1.3rem 0 0; }
+.categoria h3 { font-family: var(--sans); font-size: .76rem; text-transform: uppercase; letter-spacing: .1em; color: var(--tinta-3); font-weight: 700; display: flex; align-items: baseline; gap: .6rem; margin-bottom: .6rem; }
+.categoria h3 small { font-weight: 600; letter-spacing: .04em; text-transform: none; color: var(--papel-4); }
+.obras-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: .7rem; }
+.obra-cartao {
+  display: flex; flex-direction: column; gap: .15rem; min-height: 118px; padding: .85rem .95rem .8rem; color: var(--tinta);
+  background: #fff; border: 1px solid var(--papel-3); border-radius: var(--raio); position: relative; overflow: hidden;
+  transition: transform var(--transicao), box-shadow var(--transicao), border-color var(--transicao);
+}
+.obra-cartao::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--papel-3); transition: background var(--transicao); }
+.obra-cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra-p); border-color: var(--papel-4); text-decoration: none; }
+.obra-cartao:hover::before, .obra-cartao.em-uso::before { background: var(--ouro); }
+.obra-sigla { font-family: var(--serifa); font-weight: 700; font-size: 1.12rem; line-height: 1.15; color: var(--acento); }
+.obra-sigla.grande { font-size: 1.5rem; background: var(--acento); color: #fff; border-radius: 14px; padding: .7rem .9rem; align-self: flex-start; white-space: nowrap; }
+.obra-nome { font-size: .84rem; line-height: 1.3; color: var(--tinta-2); flex: 1; }
+.obra-meta, .obra-uso { font-size: .72rem; color: var(--tinta-3); }
+.obra-uso { color: #8a6a17; font-weight: 700; }
+.obra-cartao .progresso { height: 3px; margin-top: .35rem; }
+.voltar { display: inline-flex; align-items: center; gap: .3rem; color: var(--tinta-3); font-size: .86rem; font-weight: 600; margin-bottom: .8rem; }
+.obra-cabecalho { display: flex; gap: 1.1rem; align-items: flex-start; margin-bottom: 1rem; }
+.obra-cabecalho h1 { font-size: 1.8rem; margin: 0 0 .15rem; }
+.obra-ident { margin: 0; color: var(--tinta-2); font-weight: 600; }
+.obra-ementa { margin: .4rem 0 0; font-family: var(--serifa); font-style: italic; color: var(--tinta-2); max-width: 70ch; }
+.obra-fonte { margin: .45rem 0 0; font-size: .8rem; color: var(--tinta-3); }
+.obra-acoes { margin-bottom: 1.2rem; }
+.escopo-busca { display: flex; flex-wrap: wrap; gap: .35rem; margin: .8rem 0 1rem; }
+.chip-escopo { height: 32px; padding: 0 .8rem; border-radius: 999px; border: 1px solid var(--papel-3); background: #fff; color: var(--tinta-2); font-size: .8rem; font-weight: 600; cursor: pointer; }
+.chip-escopo.ativo { background: var(--tinta); border-color: var(--tinta); color: var(--papel); }
+.gaveta-obra { display: flex; align-items: center; gap: .6rem; padding: .7rem 1rem; border-bottom: 1px solid var(--papel-3); background: var(--papel-2); }
+.gaveta-obra-nome { flex: 1; font-size: .84rem; color: var(--tinta-2); line-height: 1.25; }
+.gaveta-trocar { font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.escolha-obras { max-height: 52vh; overflow: auto; display: flex; flex-direction: column; gap: .8rem; padding-right: .3rem; }
+.escolha-categoria { display: flex; align-items: baseline; gap: .6rem; border: 0; background: transparent; padding: 0; cursor: pointer; font-size: .74rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; color: var(--tinta-3); margin-bottom: .4rem; }
+.escolha-categoria small { text-transform: none; letter-spacing: 0; color: var(--acento); font-weight: 600; }
+.escolha-lista { display: flex; flex-wrap: wrap; gap: .35rem; }
+.escolha-obra { height: 34px; padding: 0 .75rem; border-radius: 999px; border: 1px solid var(--papel-3); background: #fff; color: var(--tinta-2); font-size: .82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: .4rem; }
+.escolha-obra small { font-size: .66rem; color: var(--ouro); font-weight: 700; }
+.escolha-obra.marcada { background: var(--acento); border-color: var(--acento); color: #fff; }
+.escolha-obra.marcada small { color: #fff; opacity: .8; }
+.modal-rodape { align-items: center; }
+.modal-rodape > span { margin-right: auto; color: var(--tinta-3); font-size: .84rem; }
+
 /* Sumário (tela inteira) */
 .sumario-tela .no-filhos { display: block; }
 .sumario-tela .no-alterna { display: none; }
+/* lei grande (Código Civil: 319 páginas): a tela cheia também recolhe, senão vira um rolo sem fim */
+.sumario-tela.recolhivel .no-filhos { display: none; }
+.sumario-tela.recolhivel .no.aberto > .no-filhos { display: block; }
+.sumario-tela.recolhivel .no-alterna { display: grid; }
 
 /* Busca */
 .resultado { display: block; background: #fff; border: 1px solid var(--papel-3); border-radius: var(--raio); padding: .9rem 1.1rem; color: var(--tinta); margin-bottom: .6rem; transition: border-color var(--transicao), box-shadow var(--transicao); }
@@ -310,7 +360,15 @@ input[type="range"] { accent-color: var(--acento); width: 100%; padding: 0; bord
 .disp-rotulo { font-weight: 700; margin-right: .35em; color: var(--tinta-2); }
 .dispositivo.tipo-paragrafo .disp-rotulo { color: var(--tinta); }
 .dispositivo.lendo { background: var(--ouro-suave); box-shadow: 0 0 0 4px var(--ouro-suave); animation: pulsar 1.6s ease-in-out infinite; }
+.folha-obra { color: var(--acento); font-weight: 700; }
+.artigo-rubrica { font-family: var(--sans); font-size: .78em; font-weight: 700; color: var(--tinta-2); margin: 0 0 .1rem; letter-spacing: .01em; }
+.dispositivo.tipo-rubrica { font-family: var(--sans); font-size: .78em; font-weight: 700; color: var(--tinta-2); margin: .6em 0 .1em .8em; }
+.dispositivo.tipo-pena { margin-left: 1.6em; color: var(--tinta-2); }
+.dispositivo.tipo-pena .disp-rotulo { font-style: italic; font-weight: 600; }
+.dispositivo.tipo-pena .disp-rotulo::after { content: " –"; }
+.dispositivo.tipo-citacao { margin-left: 1.6em; padding-left: .8em; border-left: 2px solid var(--papel-4); color: var(--tinta-2); font-size: .94em; border-radius: 0; }
 .disp-nota-editor { display: block; font-family: var(--sans); font-size: .7em; color: var(--tinta-3); margin-top: .15em; }
+.sem-notas .disp-nota-editor { display: none; }
 .disp-nota-editor::before { content: "✻ "; color: var(--ouro); }
 mark.marca { color: inherit; background: var(--cor); border-radius: 3px; padding: .04em 0; box-decoration-break: clone; -webkit-box-decoration-break: clone; cursor: pointer; }
 mark.marca.estilo-sublinhado { background: transparent; text-decoration: underline; text-decoration-color: var(--cor); text-decoration-thickness: .14em; text-underline-offset: .12em; }

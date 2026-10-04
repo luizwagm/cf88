@@ -17,6 +17,24 @@ caneta — Galaxy Tab S10 + S Pen em primeiro lugar, mas qualquer navegador mode
 - **Estante** com "continuar de onde parei", páginas anotadas e **revisão** de todas as
   marcações e notas na ordem do livro.
 
+## Vade Mecum
+
+Além da Constituição (PDF do Senado), o caderno traz 83 leis federais — códigos, estatutos
+e as leis mais cobradas — com o **texto compilado do Planalto**. A biblioteca as agrupa por
+matéria; cada lei tem a sua tela, com a data em que o texto foi baixado e a última alteração
+já incorporada.
+
+```bash
+npm run leis                      # gera o que falta (usa o cache do HTML em .cache/leis)
+npm run leis -- --atualizar       # baixa de novo TUDO: é assim que o texto fica em dia
+npm run leis -- --so cp,cpp       # só estas
+```
+
+O extrator (`ferramentas/leis/`) confere cada lei contra o último artigo esperado e **recusa**
+a que não fechar a conta. Para acrescentar uma lei, uma linha em `ferramentas/leis/catalogo.ts`.
+Os ids são por caminho (`cp-art-121-p2-i6`), então atualizar o texto não solta as anotações.
+Depois de atualizar: conferir a saída, `npm test`, commit e deploy.
+
 ## No tablet e sem internet
 
 Menu do avatar › **Instalar no tablet** (PWA em tela cheia) e **Baixar para usar sem

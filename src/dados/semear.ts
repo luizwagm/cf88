@@ -14,6 +14,7 @@ export const PREFERENCIAS_PADRAO: Record<string, string> = {
   tamanho_fonte: "19",        // px do texto constitucional
   voz: "",                    // nome da voz do sistema; vazio = a melhor pt-BR disponível
   velocidade_voz: "1",
+  notas_alteracao: "1",       // 1 = mostra "(Redação dada pela Lei…)" sob cada dispositivo
   desenhar_com_dedo: "0",     // 0 = só caneta/mouse desenham; dedo rola a página
   cor_caneta: "#1d2433",
   cor_marcador: "#fff59a",

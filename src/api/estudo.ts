@@ -6,7 +6,7 @@ import type { Roteador } from "../http/roteador.ts";
 import { corpoObjeto } from "../http/roteador.ts";
 import { banco } from "../dados/bd.ts";
 import { erroValidacao } from "../nucleo/erros.ts";
-import { texto as conteudo, pagina as acharPagina } from "../dados/texto.ts";
+import { texto as conteudo, pagina as acharPagina, obraDaPagina, obras, ordemGlobal, totalDePaginas, dispositivo as acharDispositivo } from "../dados/texto.ts";
 import { PREFERENCIAS_PADRAO } from "../dados/semear.ts";
 
 const LIMITES_PREF: Record<string, (v: string) => boolean> = {
@@ -14,6 +14,7 @@ const LIMITES_PREF: Record<string, (v: string) => boolean> = {
   voz: (v) => v.length <= 120,
   velocidade_voz: (v) => /^\d(\.\d+)?$/.test(v) && Number(v) >= 0.5 && Number(v) <= 2,
   desenhar_com_dedo: (v) => v === "0" || v === "1",
+  notas_alteracao: (v) => v === "0" || v === "1",
   cor_caneta: (v) => /^#[0-9a-f]{6}$/i.test(v),
   cor_marcador: (v) => /^#[0-9a-f]{6}$/i.test(v),
   largura_caneta: (v) => /^\d+(\.\d+)?$/.test(v) && Number(v) >= 0.5 && Number(v) <= 12,
@@ -50,19 +51,34 @@ export function registrarEstudo(r: Roteador): void {
     const itens = [...porPagina.values()]
       .map((e) => {
         const p = acharPagina(e.pagina_id);
-        return p ? { ...e, ordem: p.ordem, rotulo: p.rotulo, nome: p.nome, livro: p.livro, trilha: p.trilha.map((t) => t.rotulo).join(" › ") } : null;
+        const o = obraDaPagina(e.pagina_id);
+        return p && o ? { ...e, ordem: ordemGlobal(p.id), rotulo: p.rotulo, nome: p.nome, livro: p.livro, obra_id: o.id, obra_sigla: o.sigla, trilha: p.trilha.map((t) => t.rotulo).join(" › ") } : null;
       })
       .filter((x): x is NonNullable<typeof x> => x !== null)
       .sort((a, b) => a.ordem - b.ordem);
 
+    /* por obra: o que o estudante já abriu e anotou em cada lei */
+    const porObra = new Map<string, { obra_id: string; lidas: number; tracos: number; marcacoes: number; notas: number; ultima_em: string | null; ultima_pagina: string | null }>();
+    for (const it of itens) {
+      let e = porObra.get(it.obra_id);
+      if (!e) { e = { obra_id: it.obra_id, lidas: 0, tracos: 0, marcacoes: 0, notas: 0, ultima_em: null, ultima_pagina: null }; porObra.set(it.obra_id, e); }
+      if (it.visitas > 0) e.lidas += 1;
+      e.tracos += it.tracos; e.marcacoes += it.marcacoes; e.notas += it.notas;
+      if (it.ultima_em && (!e.ultima_em || it.ultima_em > e.ultima_em)) { e.ultima_em = it.ultima_em; e.ultima_pagina = it.pagina_id; }
+    }
+    const resumoObras = obras().filter((o) => porObra.has(o.id)).map((o) => ({ ...porObra.get(o.id)!, sigla: o.sigla, nome: o.nome, total: o.paginas }));
+
     const ultimaPagina = ultima ? acharPagina(ultima.pagina_id) : undefined;
+    const ultimaObra = ultima ? obraDaPagina(ultima.pagina_id) : undefined;
     return {
       corpo: {
         atualizado_ate: c.atualizado_ate,
-        total_paginas: c.paginas.length,
+        total_paginas: totalDePaginas(),
+        total_obras: obras().length,
+        obras: resumoObras,
         paginas_lidas: Number(lidas?.n ?? 0),
         contagens: { tracos: Number(tracos?.n ?? 0), marcacoes: Number(marcacoes?.n ?? 0), notas: Number(notas?.n ?? 0) },
-        ultima: ultima && ultimaPagina ? { pagina_id: ultima.pagina_id, posicao: Number(ultima.posicao), ultima_em: ultima.ultima_em, rotulo: ultimaPagina.rotulo, nome: ultimaPagina.nome, trilha: ultimaPagina.trilha.map((t) => t.rotulo).join(" › ") } : null,
+        ultima: ultima && ultimaPagina ? { pagina_id: ultima.pagina_id, posicao: Number(ultima.posicao), ultima_em: ultima.ultima_em, rotulo: ultimaPagina.rotulo, nome: ultimaPagina.nome, trilha: ultimaPagina.trilha.map((t) => t.rotulo).join(" › "), obra_id: ultimaObra?.id ?? "cf", obra_sigla: ultimaObra?.sigla ?? "CF/88" } : null,
         paginas: itens,
       },
     };
@@ -80,7 +96,7 @@ export function registrarEstudo(r: Roteador): void {
         ? banco().all("SELECT id, pagina_id, dispositivo_id, texto, cor, criado_em, atualizado_em FROM notas WHERE usuario_id = ? AND pagina_id = ? ORDER BY criado_em", uid, filtro)
         : banco().all("SELECT id, pagina_id, dispositivo_id, texto, cor, criado_em, atualizado_em FROM notas WHERE usuario_id = ? ORDER BY criado_em", uid),
     ]);
-    const ordemDe = (id: string) => acharPagina(id)?.ordem ?? 0;
+    const ordemDe = (id: string) => ordemGlobal(id);
     const posicaoDe = (paginaId: string, dispositivoId: string) => {
       const p = acharPagina(paginaId);
       if (!p) return 0;
@@ -89,15 +105,15 @@ export function registrarEstudo(r: Roteador): void {
       return 0;
     };
     const rotuloDe = (dispositivoId: string) => {
-      for (const p of conteudo().paginas) for (const a of p.artigos) for (const d of a.dispositivos) {
-        if (d.id === dispositivoId) return d.rotulo ? `${a.rotulo}, ${d.rotulo}` : a.rotulo;
-      }
-      return "";
+      const x = acharDispositivo(dispositivoId);
+      if (!x) return "";
+      return x.dispositivo.rotulo ? `${x.artigo.rotulo}, ${x.dispositivo.rotulo}` : x.artigo.rotulo;
     };
     type Item = Record<string, unknown> & { pagina_id: string; dispositivo_id: string; criado_em: string };
     const marcar = (tipo: string, lista: Item[]) => lista.map((m) => ({
       tipo, ...m, ordem: ordemDe(m.pagina_id), posicao: posicaoDe(m.pagina_id, m.dispositivo_id), referencia: rotuloDe(m.dispositivo_id),
       pagina_rotulo: acharPagina(m.pagina_id)?.rotulo ?? "", pagina_nome: acharPagina(m.pagina_id)?.nome ?? "",
+      obra_id: obraDaPagina(m.pagina_id)?.id ?? "", obra_sigla: obraDaPagina(m.pagina_id)?.sigla ?? "",
     }));
     const itens = [...marcar("marcacao", marcacoes as Item[]), ...marcar("nota", notas as Item[])]
       .sort((a, b) => a.ordem - b.ordem || a.posicao - b.posicao || String(a.criado_em).localeCompare(String(b.criado_em)));

@@ -1,0 +1,1618 @@
+{
+ "gerado_em": "2026-10-04",
+ "categorias": [
+  "Constitucional",
+  "Civil e Consumidor",
+  "Processo Civil",
+  "Penal",
+  "Processo Penal",
+  "Trabalho",
+  "Tributário e Financeiro",
+  "Administrativo",
+  "Empresarial",
+  "Eleitoral",
+  "Previdenciário",
+  "Ambiental e Urbanístico",
+  "Estatutos e Direitos Humanos",
+  "Carreiras Jurídicas"
+ ],
+ "obras": [
+  {
+   "id": "cf",
+   "sigla": "CF/88",
+   "nome": "Constituição da República Federativa do Brasil",
+   "identificacao": "Promulgada em 5 de outubro de 1988",
+   "categoria": "Constitucional",
+   "arquivo": "cf88.json",
+   "prefixos": [
+    "cf",
+    "adct"
+   ],
+   "paginas": 93,
+   "artigos": 420,
+   "palavras": 84513,
+   "fonte": "Senado Federal — Edição administrativa do texto constitucional promulgado em 5 de outubro de 1988, compilado até a Emenda Constitucional nº 139/2026",
+   "url": "",
+   "baixado_em": "",
+   "atualizado_ate": "EC 139/2026",
+   "ementa": ""
+  },
+  {
+   "id": "lms",
+   "sigla": "LMS",
+   "nome": "Mandado de Segurança",
+   "identificacao": "Lei nº 12.016, de 7 de agosto de 2009",
+   "categoria": "Constitucional",
+   "arquivo": "obras/lms.json",
+   "prefixos": [
+    "lms"
+   ],
+   "paginas": 2,
+   "artigos": 29,
+   "palavras": 2299,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/L12016.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 13.676, de 2018",
+   "ementa": ""
+  },
+  {
+   "id": "ladi",
+   "sigla": "ADI/ADC",
+   "nome": "Ação Direta de Inconstitucionalidade e Ação Declaratória",
+   "identificacao": "Lei nº 9.868, de 10 de novembro de 1999",
+   "categoria": "Constitucional",
+   "arquivo": "obras/ladi.json",
+   "prefixos": [
+    "ladi"
+   ],
+   "paginas": 10,
+   "artigos": 39,
+   "palavras": 2455,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9868.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 12.063, de 2009",
+   "ementa": "Dispõe sobre o processo e julgamento da ação direta de inconstitucionalidade e da ação declaratória de constitucionalidade perante o Supremo Tribunal Federal."
+  },
+  {
+   "id": "adpf",
+   "sigla": "ADPF",
+   "nome": "Arguição de Descumprimento de Preceito Fundamental",
+   "identificacao": "Lei nº 9.882, de 3 de dezembro de 1999",
+   "categoria": "Constitucional",
+   "arquivo": "obras/adpf.json",
+   "prefixos": [
+    "adpf"
+   ],
+   "paginas": 1,
+   "artigos": 14,
+   "palavras": 776,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9882.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "",
+   "ementa": "Dispõe sobre o processo e julgamento da argüição de descumprimento de preceito fundamental, nos termos do § 1º do art. 102 da Constituição Federal."
+  },
+  {
+   "id": "lmi",
+   "sigla": "LMI",
+   "nome": "Mandado de Injunção",
+   "identificacao": "Lei nº 13.300, de 23 de junho de 2016",
+   "categoria": "Constitucional",
+   "arquivo": "obras/lmi.json",
+   "prefixos": [
+    "lmi"
+   ],
+   "paginas": 1,
+   "artigos": 15,
+   "palavras": 1008,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2016/lei/L13300.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "",
+   "ementa": ""
+  },
+  {
+   "id": "lhd",
+   "sigla": "LHD",
+   "nome": "Habeas Data",
+   "identificacao": "Lei nº 9.507, de 12 de novembro de 1997",
+   "categoria": "Constitucional",
+   "arquivo": "obras/lhd.json",
+   "prefixos": [
+    "lhd"
+   ],
+   "paginas": 2,
+   "artigos": 23,
+   "palavras": 993,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9507.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "",
+   "ementa": "Regula o direito de acesso a informações e disciplina o rito processual do habeas data."
+  },
+  {
+   "id": "lap",
+   "sigla": "LAP",
+   "nome": "Ação Popular",
+   "identificacao": "Lei nº 4.717, de 29 de junho de 1965",
+   "categoria": "Constitucional",
+   "arquivo": "obras/lap.json",
+   "prefixos": [
+    "lap"
+   ],
+   "paginas": 5,
+   "artigos": 22,
+   "palavras": 2508,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L4717.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 6.513, de 1977",
+   "ementa": "Regula a ação popular."
+  },
+  {
+   "id": "lacp",
+   "sigla": "LACP",
+   "nome": "Ação Civil Pública",
+   "identificacao": "Lei nº 7.347, de 24 de julho de 1985",
+   "categoria": "Constitucional",
+   "arquivo": "obras/lacp.json",
+   "prefixos": [
+    "lacp"
+   ],
+   "paginas": 2,
+   "artigos": 23,
+   "palavras": 1394,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L7347compilada.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 12.966, de 2014",
+   "ementa": ""
+  },
+  {
+   "id": "lai",
+   "sigla": "LAI",
+   "nome": "Lei de Acesso à Informação",
+   "identificacao": "Lei nº 12.527, de 18 de novembro de 2011",
+   "categoria": "Constitucional",
+   "arquivo": "obras/lai.json",
+   "prefixos": [
+    "lai"
+   ],
+   "paginas": 11,
+   "artigos": 49,
+   "palavras": 5668,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/L12527.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.141, de 2025",
+   "ementa": "Regula o acesso a informações previsto no inciso XXXIII do art. 5º, no inciso II do § 3º do art. 37 e no § 2º do art. 216 da Constituição Federal; altera a Lei nº 8.112, de 11 de dezembro de 1990; revoga a Lei nº 11.111, de 5 de maio de 2005, e dispositivos da Lei nº 8.159, de 8 de janeiro de 1991; e dá outras providências."
+  },
+  {
+   "id": "lindb",
+   "sigla": "LINDB",
+   "nome": "Lei de Introdução às Normas do Direito Brasileiro",
+   "identificacao": "Decreto-Lei nº 4.657, de 4 de setembro de 1942",
+   "categoria": "Civil e Consumidor",
+   "arquivo": "obras/lindb.json",
+   "prefixos": [
+    "lindb"
+   ],
+   "paginas": 2,
+   "artigos": 30,
+   "palavras": 2139,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/Del4657compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 13.655, de 2018",
+   "ementa": ""
+  },
+  {
+   "id": "cc",
+   "sigla": "CC",
+   "nome": "Código Civil",
+   "identificacao": "Lei nº 10.406, de 10 de janeiro de 2002",
+   "categoria": "Civil e Consumidor",
+   "arquivo": "obras/cc.json",
+   "prefixos": [
+    "cc"
+   ],
+   "paginas": 319,
+   "artigos": 2083,
+   "palavras": 86362,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.068, de 2024",
+   "ementa": "Institui o Código Civil."
+  },
+  {
+   "id": "cdc",
+   "sigla": "CDC",
+   "nome": "Código de Defesa do Consumidor",
+   "identificacao": "Lei nº 8.078, de 11 de setembro de 1990",
+   "categoria": "Civil e Consumidor",
+   "arquivo": "obras/cdc.json",
+   "prefixos": [
+    "cdc"
+   ],
+   "paginas": 28,
+   "artigos": 130,
+   "palavras": 11097,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8078compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Medida Provisória nº 1.393, de 2026",
+   "ementa": "Dispõe sobre a proteção do consumidor e dá outras providências."
+  },
+  {
+   "id": "inq",
+   "sigla": "Inquilinato",
+   "nome": "Lei do Inquilinato (Locações)",
+   "identificacao": "Lei nº 8.245, de 18 de outubro de 1991",
+   "categoria": "Civil e Consumidor",
+   "arquivo": "obras/inq.json",
+   "prefixos": [
+    "inq"
+   ],
+   "paginas": 18,
+   "artigos": 91,
+   "palavras": 7890,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8245compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 12.744, de 2012",
+   "ementa": "Dispõe sobre as locações dos imóveis urbanos e os procedimentos a elas pertinentes."
+  },
+  {
+   "id": "lrp",
+   "sigla": "LRP",
+   "nome": "Lei de Registros Públicos",
+   "identificacao": "Lei nº 6.015, de 31 de dezembro de 1973",
+   "categoria": "Civil e Consumidor",
+   "arquivo": "obras/lrp.json",
+   "prefixos": [
+    "lrp"
+   ],
+   "paginas": 41,
+   "artigos": 321,
+   "palavras": 28454,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L6015compilada.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Vide Lei nº 15.139, de 2025",
+   "ementa": "Dispõe sobre os registros públicos, e dá outras providências."
+  },
+  {
+   "id": "alim",
+   "sigla": "Alimentos",
+   "nome": "Lei de Alimentos",
+   "identificacao": "Lei nº 5.478, de 25 de julho de 1968",
+   "categoria": "Civil e Consumidor",
+   "arquivo": "obras/alim.json",
+   "prefixos": [
+    "alim"
+   ],
+   "paginas": 2,
+   "artigos": 26,
+   "palavras": 1685,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L5478.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "",
+   "ementa": "Dispõe sobre ação de alimentos e dá outras providências."
+  },
+  {
+   "id": "lgpd",
+   "sigla": "LGPD",
+   "nome": "Lei Geral de Proteção de Dados Pessoais",
+   "identificacao": "Lei nº 13.709, de 14 de agosto de 2018",
+   "categoria": "Civil e Consumidor",
+   "arquivo": "obras/lgpd.json",
+   "prefixos": [
+    "lgpd"
+   ],
+   "paginas": 18,
+   "artigos": 80,
+   "palavras": 10507,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.352, de 2026",
+   "ementa": ""
+  },
+  {
+   "id": "mci",
+   "sigla": "MCI",
+   "nome": "Marco Civil da Internet",
+   "identificacao": "Lei nº 12.965, de 23 de abril de 2014",
+   "categoria": "Civil e Consumidor",
+   "arquivo": "obras/mci.json",
+   "prefixos": [
+    "mci"
+   ],
+   "paginas": 11,
+   "artigos": 32,
+   "palavras": 3621,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/L12965.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 13.709, de 2018",
+   "ementa": "Estabelece princípios, garantias, direitos e deveres para o uso da Internet no Brasil."
+  },
+  {
+   "id": "lda",
+   "sigla": "LDA",
+   "nome": "Direitos Autorais",
+   "identificacao": "Lei nº 9.610, de 19 de fevereiro de 1998",
+   "categoria": "Civil e Consumidor",
+   "arquivo": "obras/lda.json",
+   "prefixos": [
+    "lda"
+   ],
+   "paginas": 27,
+   "artigos": 122,
+   "palavras": 9246,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9610.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 12.853, de 2013",
+   "ementa": "Altera, atualiza e consolida a legislação sobre direitos autorais e dá outras providências."
+  },
+  {
+   "id": "cpc",
+   "sigla": "CPC",
+   "nome": "Código de Processo Civil",
+   "identificacao": "Lei nº 13.105, de 16 de março de 2015",
+   "categoria": "Processo Civil",
+   "arquivo": "obras/cpc.json",
+   "prefixos": [
+    "cpc"
+   ],
+   "paginas": 200,
+   "artigos": 1074,
+   "palavras": 83762,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/L13105compilada.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.484, de 2026",
+   "ementa": ""
+  },
+  {
+   "id": "jec",
+   "sigla": "JEC",
+   "nome": "Juizados Especiais Cíveis e Criminais",
+   "identificacao": "Lei nº 9.099, de 26 de setembro de 1995",
+   "categoria": "Processo Civil",
+   "arquivo": "obras/jec.json",
+   "prefixos": [
+    "jec"
+   ],
+   "paginas": 26,
+   "artigos": 99,
+   "palavras": 5444,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9099.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.245, de 2021",
+   "ementa": "Dispõe sobre os Juizados Especiais Cíveis e Criminais e dá outras providências."
+  },
+  {
+   "id": "jef",
+   "sigla": "JEF",
+   "nome": "Juizados Especiais Federais",
+   "identificacao": "Lei nº 10.259, de 12 de julho de 2001",
+   "categoria": "Processo Civil",
+   "arquivo": "obras/jef.json",
+   "prefixos": [
+    "jef"
+   ],
+   "paginas": 2,
+   "artigos": 27,
+   "palavras": 1768,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/leis_2001/L10259.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 11.313, de 2006",
+   "ementa": "Dispõe sobre a instituição dos Juizados Especiais Cíveis e Criminais no âmbito da Justiça Federal."
+  },
+  {
+   "id": "jefp",
+   "sigla": "JEFP",
+   "nome": "Juizados Especiais da Fazenda Pública",
+   "identificacao": "Lei nº 12.153, de 22 de dezembro de 2009",
+   "categoria": "Processo Civil",
+   "arquivo": "obras/jefp.json",
+   "prefixos": [
+    "jefp"
+   ],
+   "paginas": 2,
+   "artigos": 28,
+   "palavras": 1694,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/L12153.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "",
+   "ementa": "Dispõe sobre os Juizados Especiais da Fazenda Pública no âmbito dos Estados, do Distrito Federal, dos Territórios e dos Municípios."
+  },
+  {
+   "id": "arb",
+   "sigla": "Arbitragem",
+   "nome": "Lei de Arbitragem",
+   "identificacao": "Lei nº 9.307, de 23 de setembro de 1996",
+   "categoria": "Processo Civil",
+   "arquivo": "obras/arb.json",
+   "prefixos": [
+    "arb"
+   ],
+   "paginas": 9,
+   "artigos": 46,
+   "palavras": 3589,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9307.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 13.129, de 2015",
+   "ementa": "Dispõe sobre a arbitragem."
+  },
+  {
+   "id": "med",
+   "sigla": "Mediação",
+   "nome": "Lei de Mediação",
+   "identificacao": "Lei nº 13.140, de 26 de junho de 2015",
+   "categoria": "Processo Civil",
+   "arquivo": "obras/med.json",
+   "prefixos": [
+    "med"
+   ],
+   "paginas": 11,
+   "artigos": 48,
+   "palavras": 3524,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/L13140.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 13.327, de 2016",
+   "ementa": "Dispõe sobre a mediação entre particulares como meio de solução de controvérsias e sobre a autocomposição de conflitos no âmbito da administração pública; altera a Lei nº 9.469, de 10 de julho de 1997, e o Decreto nº 70.235, de 6 de março de 1972; e revoga o § 2º do art. 6º da Lei nº 9.469, de 10 de julho de 1997."
+  },
+  {
+   "id": "lef",
+   "sigla": "LEF",
+   "nome": "Lei de Execução Fiscal",
+   "identificacao": "Lei nº 6.830, de 22 de setembro de 1980",
+   "categoria": "Processo Civil",
+   "arquivo": "obras/lef.json",
+   "prefixos": [
+    "lef"
+   ],
+   "paginas": 3,
+   "artigos": 42,
+   "palavras": 3385,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L6830.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.689, de 2023",
+   "ementa": "Dispõe sobre a cobrança judicial da Dívida Ativa da Fazenda Pública, e dá outras providências."
+  },
+  {
+   "id": "pje",
+   "sigla": "Proc. Eletrônico",
+   "nome": "Informatização do Processo Judicial",
+   "identificacao": "Lei nº 11.419, de 19 de dezembro de 2006",
+   "categoria": "Processo Civil",
+   "arquivo": "obras/pje.json",
+   "prefixos": [
+    "pje"
+   ],
+   "paginas": 3,
+   "artigos": 22,
+   "palavras": 2517,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2006/lei/L11419.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.318, de 2022",
+   "ementa": "Dispõe sobre a informatização do processo judicial; altera a Lei nº 5.869, de 11 de janeiro de 1973 – Código de Processo Civil; e dá outras providências."
+  },
+  {
+   "id": "laj",
+   "sigla": "LAJ",
+   "nome": "Assistência Judiciária",
+   "identificacao": "Lei nº 1.060, de 5 de fevereiro de 1950",
+   "categoria": "Processo Civil",
+   "arquivo": "obras/laj.json",
+   "prefixos": [
+    "laj"
+   ],
+   "paginas": 2,
+   "artigos": 19,
+   "palavras": 762,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L1060compilada.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei n º 13.105, de 2015",
+   "ementa": "Estabelece normas para a concessão de assistência judiciária aos necessitados."
+  },
+  {
+   "id": "cp",
+   "sigla": "CP",
+   "nome": "Código Penal",
+   "identificacao": "Decreto-Lei nº 2.848, de 7 de dezembro de 1940",
+   "categoria": "Penal",
+   "arquivo": "obras/cp.json",
+   "prefixos": [
+    "cp"
+   ],
+   "paginas": 72,
+   "artigos": 430,
+   "palavras": 30748,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.358, de 2026",
+   "ementa": ""
+  },
+  {
+   "id": "lcp",
+   "sigla": "LCP",
+   "nome": "Lei das Contravenções Penais",
+   "identificacao": "Decreto-Lei nº 3.688, de 3 de outubro de 1941",
+   "categoria": "Penal",
+   "arquivo": "obras/lcp.json",
+   "prefixos": [
+    "lcp"
+   ],
+   "paginas": 8,
+   "artigos": 66,
+   "palavras": 3367,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/Del3688.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.994, de 2024",
+   "ementa": ""
+  },
+  {
+   "id": "drogas",
+   "sigla": "Drogas",
+   "nome": "Lei de Drogas",
+   "identificacao": "Lei nº 11.343, de 23 de agosto de 2006",
+   "categoria": "Penal",
+   "arquivo": "obras/drogas.json",
+   "prefixos": [
+    "drogas"
+   ],
+   "paginas": 28,
+   "artigos": 100,
+   "palavras": 10040,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2006/lei/L11343.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.358, de 2026",
+   "ementa": "Institui o Sistema Nacional de Políticas Públicas sobre Drogas - Sisnad; prescreve medidas para prevenção do uso indevido, atenção e reinserção social de usuários e dependentes de drogas; estabelece normas para repressão à produção não autorizada e ao tráfico ilícito de drogas; define crimes e dá outras providências."
+  },
+  {
+   "id": "lmp",
+   "sigla": "Maria da Penha",
+   "nome": "Lei Maria da Penha",
+   "identificacao": "Lei nº 11.340, de 7 de agosto de 2006",
+   "categoria": "Penal",
+   "arquivo": "obras/lmp.json",
+   "prefixos": [
+    "lmp"
+   ],
+   "paginas": 16,
+   "artigos": 57,
+   "palavras": 5670,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2006/lei/L11340.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.384, de 2026",
+   "ementa": ""
+  },
+  {
+   "id": "hed",
+   "sigla": "Hediondos",
+   "nome": "Crimes Hediondos",
+   "identificacao": "Lei nº 8.072, de 25 de julho de 1990",
+   "categoria": "Penal",
+   "arquivo": "obras/hed.json",
+   "prefixos": [
+    "hed"
+   ],
+   "paginas": 1,
+   "artigos": 13,
+   "palavras": 1383,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8072compilada.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.384, de 2026",
+   "ementa": "Dispõe sobre os crimes hediondos, nos termos do art. 5º, inciso XLIII, da Constituição Federal, e determina outras providências."
+  },
+  {
+   "id": "desarm",
+   "sigla": "Desarmamento",
+   "nome": "Estatuto do Desarmamento",
+   "identificacao": "Lei nº 10.826, de 22 de dezembro de 2003",
+   "categoria": "Penal",
+   "arquivo": "obras/desarm.json",
+   "prefixos": [
+    "desarm"
+   ],
+   "paginas": 6,
+   "artigos": 41,
+   "palavras": 4857,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/2003/L10.826compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.358, de 2026",
+   "ementa": "Dispõe sobre registro, posse e comercialização de armas de fogo e munição, sobre o Sistema Nacional de Armas – Sinarm, define crimes e dá outras providências."
+  },
+  {
+   "id": "abuso",
+   "sigla": "Abuso de Autoridade",
+   "nome": "Lei de Abuso de Autoridade",
+   "identificacao": "Lei nº 13.869, de 5 de setembro de 2019",
+   "categoria": "Penal",
+   "arquivo": "obras/abuso.json",
+   "prefixos": [
+    "abuso"
+   ],
+   "paginas": 9,
+   "artigos": 46,
+   "palavras": 2610,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/lei/L13869compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.321, de 2022",
+   "ementa": "Dispõe sobre os crimes de abuso de autoridade; altera a Lei nº 7.960, de 21 de dezembro de 1989, a Lei nº 9.296, de 24 de julho de 1996, a Lei nº 8.069, de 13 de julho de 1990, e a Lei nº 8.906, de 4 de julho de 1994; e revoga a Lei nº 4.898, de 9 de dezembro de 1965, e dispositivos do Decreto-Lei nº 2.848, de 7 de dezembro de 1940 (Código Penal)."
+  },
+  {
+   "id": "orcrim",
+   "sigla": "ORCRIM",
+   "nome": "Organizações Criminosas",
+   "identificacao": "Lei nº 12.850, de 2 de agosto de 2013",
+   "categoria": "Penal",
+   "arquivo": "obras/orcrim.json",
+   "prefixos": [
+    "orcrim"
+   ],
+   "paginas": 8,
+   "artigos": 36,
+   "palavras": 4503,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/lei/L12850.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.487, de 2026",
+   "ementa": "Define organização criminosa e dispõe sobre a investigação criminal, os meios de obtenção da prova, infrações penais correlatas e o procedimento criminal; altera o Decreto-Lei nº 2.848, de 7 de dezembro de 1940 (Código Penal); revoga a Lei nº 9.034, de 3 de maio de 1995; e dá outras providências."
+  },
+  {
+   "id": "lavagem",
+   "sigla": "Lavagem",
+   "nome": "Lavagem de Dinheiro",
+   "identificacao": "Lei nº 9.613, de 3 de março de 1998",
+   "categoria": "Penal",
+   "arquivo": "obras/lavagem.json",
+   "prefixos": [
+    "lavagem"
+   ],
+   "paginas": 10,
+   "artigos": 29,
+   "palavras": 3762,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9613compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.358, de 2026",
+   "ementa": "Dispõe sobre os crimes de \"lavagem\" ou ocultação de bens, direitos e valores; a prevenção da utilização do sistema financeiro para os ilícitos previstos nesta Lei; cria o Conselho de Controle de Atividades Financeiras - COAF, e dá outras providências."
+  },
+  {
+   "id": "tortura",
+   "sigla": "Tortura",
+   "nome": "Crimes de Tortura",
+   "identificacao": "Lei nº 9.455, de 7 de abril de 1997",
+   "categoria": "Penal",
+   "arquivo": "obras/tortura.json",
+   "prefixos": [
+    "tortura"
+   ],
+   "paginas": 1,
+   "artigos": 4,
+   "palavras": 364,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9455.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.410, de 2026",
+   "ementa": "Define os crimes de tortura e dá outras providências."
+  },
+  {
+   "id": "racismo",
+   "sigla": "Racismo",
+   "nome": "Crimes de Preconceito de Raça ou de Cor",
+   "identificacao": "Lei nº 7.716, de 5 de janeiro de 1989",
+   "categoria": "Penal",
+   "arquivo": "obras/racismo.json",
+   "prefixos": [
+    "racismo"
+   ],
+   "paginas": 2,
+   "artigos": 27,
+   "palavras": 987,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L7716compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.532, de 2023",
+   "ementa": "Define os crimes resultantes de preconceito de raça ou de cor."
+  },
+  {
+   "id": "lca",
+   "sigla": "LCA",
+   "nome": "Crimes Ambientais",
+   "identificacao": "Lei nº 9.605, de 12 de fevereiro de 1998",
+   "categoria": "Penal",
+   "arquivo": "obras/lca.json",
+   "prefixos": [
+    "lca"
+   ],
+   "paginas": 12,
+   "artigos": 87,
+   "palavras": 5847,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9605.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.355, de 2026",
+   "ementa": "Dispõe sobre as sanções penais e administrativas derivadas de condutas e atividades lesivas ao meio ambiente, e dá outras providências."
+  },
+  {
+   "id": "ctb",
+   "sigla": "CTB",
+   "nome": "Código de Trânsito Brasileiro",
+   "identificacao": "Lei nº 9.503, de 23 de setembro de 1997",
+   "categoria": "Penal",
+   "arquivo": "obras/ctb.json",
+   "prefixos": [
+    "ctb"
+   ],
+   "paginas": 27,
+   "artigos": 391,
+   "palavras": 36552,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9503compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.503, de 2026",
+   "ementa": "Institui o Código de Trânsito Brasileiro."
+  },
+  {
+   "id": "ordtrib",
+   "sigla": "Crimes Tributários",
+   "nome": "Crimes contra a Ordem Tributária, Econômica e Relações de Consumo",
+   "identificacao": "Lei nº 8.137, de 27 de dezembro de 1990",
+   "categoria": "Penal",
+   "arquivo": "obras/ordtrib.json",
+   "prefixos": [
+    "ordtrib"
+   ],
+   "paginas": 5,
+   "artigos": 19,
+   "palavras": 1619,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8137.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei Complementar nº 224, de 2025",
+   "ementa": "Define crimes contra a ordem tributária, econômica e contra as relações de consumo, e dá outras providências."
+  },
+  {
+   "id": "cpp",
+   "sigla": "CPP",
+   "nome": "Código de Processo Penal",
+   "identificacao": "Decreto-Lei nº 3.689, de 3 de outubro de 1941",
+   "categoria": "Processo Penal",
+   "arquivo": "obras/cpp.json",
+   "prefixos": [
+    "cpp"
+   ],
+   "paginas": 100,
+   "artigos": 846,
+   "palavras": 49477,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/Del3689compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.358, de 2026",
+   "ementa": ""
+  },
+  {
+   "id": "lep",
+   "sigla": "LEP",
+   "nome": "Lei de Execução Penal",
+   "identificacao": "Lei nº 7.210, de 11 de julho de 1984",
+   "categoria": "Processo Penal",
+   "arquivo": "obras/lep.json",
+   "prefixos": [
+    "lep"
+   ],
+   "paginas": 58,
+   "artigos": 219,
+   "palavras": 13468,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L7210compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.358, de 2026",
+   "ementa": "Institui a Lei de Execução Penal."
+  },
+  {
+   "id": "temp",
+   "sigla": "Prisão Temporária",
+   "nome": "Prisão Temporária",
+   "identificacao": "Lei nº 7.960, de 21 de dezembro de 1989",
+   "categoria": "Processo Penal",
+   "arquivo": "obras/temp.json",
+   "prefixos": [
+    "temp"
+   ],
+   "paginas": 1,
+   "artigos": 7,
+   "palavras": 619,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L7960.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 13.869. de 2019",
+   "ementa": "Dispõe sobre prisão temporária."
+  },
+  {
+   "id": "intercep",
+   "sigla": "Interceptação",
+   "nome": "Interceptação Telefônica",
+   "identificacao": "Lei nº 9.296, de 24 de julho de 1996",
+   "categoria": "Processo Penal",
+   "arquivo": "obras/intercep.json",
+   "prefixos": [
+    "intercep"
+   ],
+   "paginas": 1,
+   "artigos": 14,
+   "palavras": 870,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9296.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 13.964, de 2019",
+   "ementa": ""
+  },
+  {
+   "id": "l8038",
+   "sigla": "Lei 8.038",
+   "nome": "Processos perante o STJ e o STF",
+   "identificacao": "Lei nº 8.038, de 28 de maio de 1990",
+   "categoria": "Processo Penal",
+   "arquivo": "obras/l8038.json",
+   "prefixos": [
+    "l8038"
+   ],
+   "paginas": 8,
+   "artigos": 35,
+   "palavras": 1943,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8038.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.836, de 2024",
+   "ementa": "Institui normas procedimentais para os processos que especifica, perante o Superior Tribunal de Justiça e o Supremo Tribunal Federal."
+  },
+  {
+   "id": "clt",
+   "sigla": "CLT",
+   "nome": "Consolidação das Leis do Trabalho",
+   "identificacao": "Decreto-Lei nº 5.452, de 1º de maio de 1943",
+   "categoria": "Trabalho",
+   "arquivo": "obras/clt.json",
+   "prefixos": [
+    "clt"
+   ],
+   "paginas": 182,
+   "artigos": 1027,
+   "palavras": 74636,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/Del5452compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.377, de 2026",
+   "ementa": "Aprova a Consolidação das Leis do Trabalho."
+  },
+  {
+   "id": "fgts",
+   "sigla": "FGTS",
+   "nome": "Fundo de Garantia do Tempo de Serviço",
+   "identificacao": "Lei nº 8.036, de 11 de maio de 1990",
+   "categoria": "Trabalho",
+   "arquivo": "obras/fgts.json",
+   "prefixos": [
+    "fgts"
+   ],
+   "paginas": 3,
+   "artigos": 49,
+   "palavras": 10130,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8036compilada.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.486, de 2026",
+   "ementa": "Dispõe sobre o Fundo de Garantia do Tempo de Serviço, e dá outras providências."
+  },
+  {
+   "id": "ctn",
+   "sigla": "CTN",
+   "nome": "Código Tributário Nacional",
+   "identificacao": "Lei nº 5.172, de 25 de outubro de 1966",
+   "categoria": "Tributário e Financeiro",
+   "arquivo": "obras/ctn.json",
+   "prefixos": [
+    "ctn"
+   ],
+   "paginas": 66,
+   "artigos": 234,
+   "palavras": 17742,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L5172compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei Complementar nº 227, de 2026",
+   "ementa": "Dispõe sobre o Sistema Tributário Nacional e institui normas gerais de direito tributário aplicáveis à União, Estados e Municípios."
+  },
+  {
+   "id": "lrf",
+   "sigla": "LRF",
+   "nome": "Lei de Responsabilidade Fiscal",
+   "identificacao": "Lei Complementar nº 101, de 4 de maio de 2000",
+   "categoria": "Tributário e Financeiro",
+   "arquivo": "obras/lrf.json",
+   "prefixos": [
+    "lrf"
+   ],
+   "paginas": 33,
+   "artigos": 83,
+   "palavras": 13265,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/Lcp101.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei Complementar nº 214, de 2025",
+   "ementa": "Estabelece normas de finanças públicas voltadas para a responsabilidade na gestão fiscal e dá outras providências."
+  },
+  {
+   "id": "l4320",
+   "sigla": "Lei 4.320",
+   "nome": "Normas Gerais de Direito Financeiro",
+   "identificacao": "Lei nº 4.320, de 17 de março de 1964",
+   "categoria": "Tributário e Financeiro",
+   "arquivo": "obras/l4320.json",
+   "prefixos": [
+    "l4320"
+   ],
+   "paginas": 26,
+   "artigos": 116,
+   "palavras": 6651,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L4320compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei Complementar nº 208, de 2024",
+   "ementa": ""
+  },
+  {
+   "id": "l8112",
+   "sigla": "Lei 8.112",
+   "nome": "Regime Jurídico dos Servidores Públicos Federais",
+   "identificacao": "Lei nº 8.112, de 11 de dezembro de 1990",
+   "categoria": "Administrativo",
+   "arquivo": "obras/l8112.json",
+   "prefixos": [
+    "l8112"
+   ],
+   "paginas": 74,
+   "artigos": 263,
+   "palavras": 17932,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8112compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Vide Decreto nº 12.374, de 2025",
+   "ementa": "Dispõe sobre o regime jurídico dos servidores públicos civis da União, das autarquias e das fundações públicas federais."
+  },
+  {
+   "id": "nll",
+   "sigla": "NLL",
+   "nome": "Lei de Licitações e Contratos Administrativos",
+   "identificacao": "Lei nº 14.133, de 1º de abril de 2021",
+   "categoria": "Administrativo",
+   "arquivo": "obras/nll.json",
+   "prefixos": [
+    "nll"
+   ],
+   "paginas": 45,
+   "artigos": 196,
+   "palavras": 37453,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/L14133.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.471, de 2026",
+   "ementa": ""
+  },
+  {
+   "id": "lia",
+   "sigla": "LIA",
+   "nome": "Lei de Improbidade Administrativa",
+   "identificacao": "Lei nº 8.429, de 2 de junho de 1992",
+   "categoria": "Administrativo",
+   "arquivo": "obras/lia.json",
+   "prefixos": [
+    "lia"
+   ],
+   "paginas": 11,
+   "artigos": 35,
+   "palavras": 6891,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8429compilada.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.230, de 2021",
+   "ementa": "Dispõe sobre as sanções aplicáveis em virtude da prática de atos de improbidade administrativa, de que trata o § 4º do art. 37 da Constituição Federal; e dá outras providências."
+  },
+  {
+   "id": "lpa",
+   "sigla": "LPA",
+   "nome": "Processo Administrativo Federal",
+   "identificacao": "Lei nº 9.784, de 29 de janeiro de 1999",
+   "categoria": "Administrativo",
+   "arquivo": "obras/lpa.json",
+   "prefixos": [
+    "lpa"
+   ],
+   "paginas": 19,
+   "artigos": 80,
+   "palavras": 4097,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9784.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.210, de 2021",
+   "ementa": "Regula o processo administrativo no âmbito da Administração Pública Federal."
+  },
+  {
+   "id": "conc",
+   "sigla": "Concessões",
+   "nome": "Concessão e Permissão de Serviços Públicos",
+   "identificacao": "Lei nº 8.987, de 13 de fevereiro de 1995",
+   "categoria": "Administrativo",
+   "arquivo": "obras/conc.json",
+   "prefixos": [
+    "conc"
+   ],
+   "paginas": 12,
+   "artigos": 52,
+   "palavras": 5195,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8987compilada.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.133, de 2021",
+   "ementa": "Dispõe sobre o regime de concessão e permissão da prestação de serviços públicos previsto no art. 175 da Constituição Federal, e dá outras providências."
+  },
+  {
+   "id": "ppp",
+   "sigla": "PPP",
+   "nome": "Parcerias Público-Privadas",
+   "identificacao": "Lei nº 11.079, de 30 de dezembro de 2004",
+   "categoria": "Administrativo",
+   "arquivo": "obras/ppp.json",
+   "prefixos": [
+    "ppp"
+   ],
+   "paginas": 7,
+   "artigos": 32,
+   "palavras": 5598,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2004/lei/L11079compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Vide Lei Complementar nº 214, de 2025",
+   "ementa": "Institui normas gerais para licitação e contratação de parceria público-privada no âmbito da administração pública."
+  },
+  {
+   "id": "lac",
+   "sigla": "LAC",
+   "nome": "Lei Anticorrupção",
+   "identificacao": "Lei nº 12.846, de 1º de agosto de 2013",
+   "categoria": "Administrativo",
+   "arquivo": "obras/lac.json",
+   "prefixos": [
+    "lac"
+   ],
+   "paginas": 7,
+   "artigos": 31,
+   "palavras": 2926,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/lei/L12846.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "",
+   "ementa": "Dispõe sobre a responsabilização administrativa e civil de pessoas jurídicas pela prática de atos contra a administração pública, nacional ou estrangeira, e dá outras providências."
+  },
+  {
+   "id": "estatais",
+   "sigla": "Estatais",
+   "nome": "Estatuto das Empresas Estatais",
+   "identificacao": "Lei nº 13.303, de 30 de junho de 2016",
+   "categoria": "Administrativo",
+   "arquivo": "obras/estatais.json",
+   "prefixos": [
+    "estatais"
+   ],
+   "paginas": 22,
+   "artigos": 98,
+   "palavras": 16456,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2016/lei/L13303.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.177, de 2025",
+   "ementa": "Dispõe sobre o estatuto jurídico da empresa pública, da sociedade de economia mista e de suas subsidiárias, no âmbito da União, dos Estados, do Distrito Federal e dos Municípios."
+  },
+  {
+   "id": "desap",
+   "sigla": "Desapropriação",
+   "nome": "Desapropriação por Utilidade Pública",
+   "identificacao": "Decreto-Lei nº 3.365, de 21 de junho de 1941",
+   "categoria": "Administrativo",
+   "arquivo": "obras/desap.json",
+   "prefixos": [
+    "desap"
+   ],
+   "paginas": 3,
+   "artigos": 49,
+   "palavras": 3657,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/decreto-lei/Del3365compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.620, de 2023",
+   "ementa": "Dispõe sobre desapropriações por utilidade pública."
+  },
+  {
+   "id": "lfr",
+   "sigla": "LFR",
+   "nome": "Recuperação Judicial, Extrajudicial e Falência",
+   "identificacao": "Lei nº 11.101, de 9 de fevereiro de 2005",
+   "categoria": "Empresarial",
+   "arquivo": "obras/lfr.json",
+   "prefixos": [
+    "lfr"
+   ],
+   "paginas": 30,
+   "artigos": 261,
+   "palavras": 30969,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2005/lei/L11101compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Vide Lei Complementar nº 214, de 2025",
+   "ementa": "Regula a recuperação judicial, a extrajudicial e a falência do empresário e da sociedade empresária."
+  },
+  {
+   "id": "lsa",
+   "sigla": "LSA",
+   "nome": "Lei das Sociedades por Ações",
+   "identificacao": "Lei nº 6.404, de 15 de dezembro de 1976",
+   "categoria": "Empresarial",
+   "arquivo": "obras/lsa.json",
+   "prefixos": [
+    "lsa"
+   ],
+   "paginas": 83,
+   "artigos": 313,
+   "palavras": 38668,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L6404compilada.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.177, de 2025",
+   "ementa": "Dispõe sobre as Sociedades por Ações."
+  },
+  {
+   "id": "lpi",
+   "sigla": "LPI",
+   "nome": "Propriedade Industrial",
+   "identificacao": "Lei nº 9.279, de 14 de maio de 1996",
+   "categoria": "Empresarial",
+   "arquivo": "obras/lpi.json",
+   "prefixos": [
+    "lpi"
+   ],
+   "paginas": 78,
+   "artigos": 247,
+   "palavras": 15112,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9279.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.852, de 2024",
+   "ementa": "Regula direitos e obrigações relativos à propriedade industrial."
+  },
+  {
+   "id": "cheque",
+   "sigla": "Cheque",
+   "nome": "Lei do Cheque",
+   "identificacao": "Lei nº 7.357, de 2 de setembro de 1985",
+   "categoria": "Empresarial",
+   "arquivo": "obras/cheque.json",
+   "prefixos": [
+    "cheque"
+   ],
+   "paginas": 12,
+   "artigos": 71,
+   "palavras": 4008,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L7357.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "",
+   "ementa": "Dispõe sobre o cheque e dá outras providências."
+  },
+  {
+   "id": "ce",
+   "sigla": "CE",
+   "nome": "Código Eleitoral",
+   "identificacao": "Lei nº 4.737, de 15 de julho de 1965",
+   "categoria": "Eleitoral",
+   "arquivo": "obras/ce.json",
+   "prefixos": [
+    "ce"
+   ],
+   "paginas": 49,
+   "artigos": 385,
+   "palavras": 31404,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L4737compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.358, de 2026",
+   "ementa": "Institui o Código Eleitoral."
+  },
+  {
+   "id": "le",
+   "sigla": "Eleições",
+   "nome": "Lei das Eleições",
+   "identificacao": "Lei nº 9.504, de 30 de setembro de 1997",
+   "categoria": "Eleitoral",
+   "arquivo": "obras/le.json",
+   "prefixos": [
+    "le"
+   ],
+   "paginas": 21,
+   "artigos": 152,
+   "palavras": 22578,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9504compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.230, de 2025",
+   "ementa": "Estabelece normas para as eleições."
+  },
+  {
+   "id": "lpp",
+   "sigla": "Partidos",
+   "nome": "Lei dos Partidos Políticos",
+   "identificacao": "Lei nº 9.096, de 19 de setembro de 1995",
+   "categoria": "Eleitoral",
+   "arquivo": "obras/lpp.json",
+   "prefixos": [
+    "lpp"
+   ],
+   "paginas": 12,
+   "artigos": 84,
+   "palavras": 8595,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9096compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.291, de 2022",
+   "ementa": "Dispõe sobre partidos políticos, regulamenta os arts. 17 e 14, § 3º, inciso V, da Constituição Federal."
+  },
+  {
+   "id": "inel",
+   "sigla": "Inelegibilidades",
+   "nome": "Lei das Inelegibilidades",
+   "identificacao": "Lei Complementar nº 64, de 18 de maio de 1990",
+   "categoria": "Eleitoral",
+   "arquivo": "obras/inel.json",
+   "prefixos": [
+    "inel"
+   ],
+   "paginas": 2,
+   "artigos": 33,
+   "palavras": 5356,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/Lcp64compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei Complementar nº 219, de 2025",
+   "ementa": "Estabelece, de acordo com o art. 14, § 9º da Constituição Federal, casos de inelegibilidade, prazos de cessação, e determina outras providências."
+  },
+  {
+   "id": "custeio",
+   "sigla": "Custeio",
+   "nome": "Organização e Custeio da Seguridade Social",
+   "identificacao": "Lei nº 8.212, de 24 de julho de 1991",
+   "categoria": "Previdenciário",
+   "arquivo": "obras/custeio.json",
+   "prefixos": [
+    "custeio"
+   ],
+   "paginas": 22,
+   "artigos": 115,
+   "palavras": 17233,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8212compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.363, de 2026",
+   "ementa": "Dispõe sobre a organização da Seguridade Social, institui Plano de Custeio, e dá outras providências."
+  },
+  {
+   "id": "benef",
+   "sigla": "Benefícios",
+   "nome": "Planos de Benefícios da Previdência Social",
+   "identificacao": "Lei nº 8.213, de 24 de julho de 1991",
+   "categoria": "Previdenciário",
+   "arquivo": "obras/benef.json",
+   "prefixos": [
+    "benef"
+   ],
+   "paginas": 28,
+   "artigos": 178,
+   "palavras": 21112,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8213compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.415, de 2026",
+   "ementa": "Dispõe sobre os Planos de Benefícios da Previdência Social e dá outras providências."
+  },
+  {
+   "id": "pnma",
+   "sigla": "PNMA",
+   "nome": "Política Nacional do Meio Ambiente",
+   "identificacao": "Lei nº 6.938, de 31 de agosto de 1981",
+   "categoria": "Ambiental e Urbanístico",
+   "arquivo": "obras/pnma.json",
+   "prefixos": [
+    "pnma"
+   ],
+   "paginas": 6,
+   "artigos": 41,
+   "palavras": 4091,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L6938compilada.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.512, de 2026",
+   "ementa": "Dispõe sobre a Política Nacional do Meio Ambiente, seus fins e mecanismos de formulação e aplicação, e dá outras providências."
+  },
+  {
+   "id": "cflo",
+   "sigla": "Código Florestal",
+   "nome": "Código Florestal",
+   "identificacao": "Lei nº 12.651, de 25 de maio de 2012",
+   "categoria": "Ambiental e Urbanístico",
+   "arquivo": "obras/cflo.json",
+   "prefixos": [
+    "cflo"
+   ],
+   "paginas": 20,
+   "artigos": 91,
+   "palavras": 15956,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/L12651compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.042, de 2024",
+   "ementa": "Dispõe sobre a proteção da vegetação nativa; altera as Leis nºs 6.938, de 31 de agosto de 1981, 9.393, de 19 de dezembro de 1996, e 11.428, de 22 de dezembro de 2006; revoga as Leis nºs 4.771, de 15 de setembro de 1965, e 7.754, de 14 de abril de 1989, e a Medida Provisória nº 2.166-67, de 24 de agosto de 2001; e dá outras providências."
+  },
+  {
+   "id": "snuc",
+   "sigla": "SNUC",
+   "nome": "Sistema Nacional de Unidades de Conservação",
+   "identificacao": "Lei nº 9.985, de 18 de julho de 2000",
+   "categoria": "Ambiental e Urbanístico",
+   "arquivo": "obras/snuc.json",
+   "prefixos": [
+    "snuc"
+   ],
+   "paginas": 7,
+   "artigos": 62,
+   "palavras": 6804,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L9985.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.190, de 2025",
+   "ementa": ""
+  },
+  {
+   "id": "cidade",
+   "sigla": "Estatuto da Cidade",
+   "nome": "Estatuto da Cidade",
+   "identificacao": "Lei nº 10.257, de 10 de julho de 2001",
+   "categoria": "Ambiental e Urbanístico",
+   "arquivo": "obras/cidade.json",
+   "prefixos": [
+    "cidade"
+   ],
+   "paginas": 16,
+   "artigos": 61,
+   "palavras": 6158,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/leis_2001/L10257.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.333, de 2026",
+   "ementa": ""
+  },
+  {
+   "id": "eca",
+   "sigla": "ECA",
+   "nome": "Estatuto da Criança e do Adolescente",
+   "identificacao": "Lei nº 8.069, de 13 de julho de 1990",
+   "categoria": "Estatutos e Direitos Humanos",
+   "arquivo": "obras/eca.json",
+   "prefixos": [
+    "eca"
+   ],
+   "paginas": 57,
+   "artigos": 329,
+   "palavras": 30745,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8069compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.512, de 2026",
+   "ementa": "Dispõe sobre o Estatuto da Criança e do Adolescente e dá outras providências."
+  },
+  {
+   "id": "idoso",
+   "sigla": "Pessoa Idosa",
+   "nome": "Estatuto da Pessoa Idosa",
+   "identificacao": "Lei nº 10.741, de 1º de outubro de 2003",
+   "categoria": "Estatutos e Direitos Humanos",
+   "arquivo": "obras/idoso.json",
+   "prefixos": [
+    "idoso"
+   ],
+   "paginas": 25,
+   "artigos": 118,
+   "palavras": 7687,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/2003/L10.741compilado.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.163, de 2025",
+   "ementa": "Dispõe sobre o Estatuto da Pessoa Idosa e dá outras providências."
+  },
+  {
+   "id": "epd",
+   "sigla": "EPD",
+   "nome": "Estatuto da Pessoa com Deficiência",
+   "identificacao": "Lei nº 13.146, de 6 de julho de 2015",
+   "categoria": "Estatutos e Direitos Humanos",
+   "arquivo": "obras/epd.json",
+   "prefixos": [
+    "epd"
+   ],
+   "paginas": 24,
+   "artigos": 130,
+   "palavras": 15162,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/L13146.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.249, de 2025",
+   "ementa": "Institui a Lei Brasileira de Inclusão da Pessoa com Deficiência (Estatuto da Pessoa com Deficiência)."
+  },
+  {
+   "id": "eir",
+   "sigla": "Igualdade Racial",
+   "nome": "Estatuto da Igualdade Racial",
+   "identificacao": "Lei nº 12.288, de 20 de julho de 2010",
+   "categoria": "Estatutos e Direitos Humanos",
+   "arquivo": "obras/eir.json",
+   "prefixos": [
+    "eir"
+   ],
+   "paginas": 17,
+   "artigos": 65,
+   "palavras": 5057,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2010/lei/L12288.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 14.553, de 2023",
+   "ementa": "Institui o Estatuto da Igualdade Racial; altera as Leis nos 7.716, de 5 de janeiro de 1989, 9.029, de 13 de abril de 1995, 7.347, de 24 de julho de 1985, e 10.778, de 24 de novembro de 2003."
+  },
+  {
+   "id": "juv",
+   "sigla": "Juventude",
+   "nome": "Estatuto da Juventude",
+   "identificacao": "Lei nº 12.852, de 5 de agosto de 2013",
+   "categoria": "Estatutos e Direitos Humanos",
+   "arquivo": "obras/juv.json",
+   "prefixos": [
+    "juv"
+   ],
+   "paginas": 17,
+   "artigos": 48,
+   "palavras": 4647,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/lei/L12852.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.178, de 2025",
+   "ementa": "Institui o Estatuto da Juventude e dispõe sobre os direitos dos jovens, os princípios e diretrizes das políticas públicas de juventude e o Sistema Nacional de Juventude - SINAJUVE."
+  },
+  {
+   "id": "migr",
+   "sigla": "Migração",
+   "nome": "Lei de Migração",
+   "identificacao": "Lei nº 13.445, de 24 de maio de 2017",
+   "categoria": "Estatutos e Direitos Humanos",
+   "arquivo": "obras/migr.json",
+   "prefixos": [
+    "migr"
+   ],
+   "paginas": 33,
+   "artigos": 125,
+   "palavras": 9304,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2017/lei/L13445.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "",
+   "ementa": "Institui a Lei de Migração."
+  },
+  {
+   "id": "eoab",
+   "sigla": "EOAB",
+   "nome": "Estatuto da Advocacia e da OAB",
+   "identificacao": "Lei nº 8.906, de 4 de julho de 1994",
+   "categoria": "Carreiras Jurídicas",
+   "arquivo": "obras/eoab.json",
+   "prefixos": [
+    "eoab"
+   ],
+   "paginas": 19,
+   "artigos": 96,
+   "palavras": 11451,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8906.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 15.472, de 2026",
+   "ementa": "Dispõe sobre o Estatuto da Advocacia e a Ordem dos Advogados do Brasil (OAB)."
+  },
+  {
+   "id": "lonmp",
+   "sigla": "LONMP",
+   "nome": "Lei Orgânica Nacional do Ministério Público",
+   "identificacao": "Lei nº 8.625, de 12 de fevereiro de 1993",
+   "categoria": "Carreiras Jurídicas",
+   "arquivo": "obras/lonmp.json",
+   "prefixos": [
+    "lonmp"
+   ],
+   "paginas": 25,
+   "artigos": 84,
+   "palavras": 7458,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/L8625.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "",
+   "ementa": "Institui a Lei Orgânica Nacional do Ministério Público, dispõe sobre normas gerais para a organização do Ministério Público dos Estados e dá outras providências."
+  },
+  {
+   "id": "ldp",
+   "sigla": "Defensoria",
+   "nome": "Lei Orgânica da Defensoria Pública",
+   "identificacao": "Lei Complementar nº 80, de 12 de janeiro de 1994",
+   "categoria": "Carreiras Jurídicas",
+   "arquivo": "obras/ldp.json",
+   "prefixos": [
+    "ldp"
+   ],
+   "paginas": 59,
+   "artigos": 161,
+   "palavras": 13581,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/Lcp80.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Vide Lei nº 14.941, de 2024",
+   "ementa": ""
+  },
+  {
+   "id": "loman",
+   "sigla": "LOMAN",
+   "nome": "Lei Orgânica da Magistratura Nacional",
+   "identificacao": "Lei Complementar nº 35, de 14 de março de 1979",
+   "categoria": "Carreiras Jurídicas",
+   "arquivo": "obras/loman.json",
+   "prefixos": [
+    "loman"
+   ],
+   "paginas": 26,
+   "artigos": 145,
+   "palavras": 10800,
+   "fonte": "Presidência da República — Planalto, texto compilado",
+   "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/Lcp35.htm",
+   "baixado_em": "2026-10-04",
+   "atualizado_ate": "Lei nº 54, de 22.12.1986",
+   "ementa": "Dispõe sobre a Lei Orgânica da Magistratura Nacional."
+  }
+ ]
+}

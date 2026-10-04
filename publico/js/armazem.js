@@ -177,7 +177,11 @@ export async function ler(caminho, chave, opcoes = {}) {
 }
 
 /* ---------- leitores de alto nível ---------- */
-export const lerSumario = () => ler("/api/v1/texto/sumario", "texto:sumario");
+/* A Constituição guarda o sumário na chave antiga ("texto:sumario"): quem já
+   tinha a cópia offline continua com ela. As demais obras ganham a sua. */
+const chaveSumario = (obra) => (!obra || obra === "cf" ? "texto:sumario" : `texto:sumario:${obra}`);
+export const lerObras = () => ler("/api/v1/texto/obras", "texto:obras");
+export const lerSumario = (obra = "cf") => ler(`/api/v1/texto/sumario?obra=${encodeURIComponent(obra)}`, chaveSumario(obra), { semCopia: "Esta lei ainda não foi baixada para uso offline." });
 export const lerPagina = (id) => ler(`/api/v1/texto/paginas/${encodeURIComponent(id)}`, `texto:pagina:${id}`, { semCopia: "Esta página ainda não foi baixada para uso offline." });
 export const lerAnotacoes = (id) => ler(`/api/v1/paginas/${encodeURIComponent(id)}/anotacoes`, `anot:${id}`).catch(async (e) => {
   if (e.status !== 0) throw e;
@@ -200,55 +204,88 @@ export async function removerDoEspelho(paginaId, lista, itemId) {
   }
 }
 
-export async function lerResumo(sumario) {
+export async function lerResumo() {
   try { return await ler("/api/v1/resumo", "resumo"); }
-  catch (e) { if (e.status !== 0) throw e; return resumoLocal(sumario); }
+  catch (e) { if (e.status !== 0) throw e; return resumoLocal(); }
 }
-export async function lerRevisao(sumario) {
+export async function lerRevisao() {
   try { return await ler("/api/v1/anotacoes", "revisao"); }
-  catch (e) { if (e.status !== 0) throw e; return revisaoLocal(sumario); }
+  catch (e) { if (e.status !== 0) throw e; return revisaoLocal(); }
 }
 
-/* Resumo montado do espelho local: o que o tablet sabe sem perguntar. */
-export async function resumoLocal(sumario) {
+/* O que o tablet sabe das páginas sem perguntar ao servidor: junta os
+   sumários que já estão guardados (um por obra) num mapa página → dados. */
+async function paginasConhecidas() {
+  const cat = (await obter("texto:obras")) ?? { obras: [] };
+  const mapa = new Map();
+  const obrasLocais = [];
+  for (const k of ["texto:sumario", ...(await chaves("texto:sumario:"))]) {
+    const s = await obter(k);
+    if (!s) continue;
+    const id = s.obra?.id ?? "cf";
+    const meta = cat.obras.find((o) => o.id === id) ?? s.obra ?? { id, sigla: id === "cf" ? "CF/88" : id.toUpperCase(), nome: "", paginas: s.paginas.length, ordem: 0 };
+    const ordemObra = cat.obras.findIndex((o) => o.id === id);
+    obrasLocais.push(meta);
+    for (const p of s.paginas) mapa.set(p.id, { ...p, obra_id: id, obra_sigla: meta.sigla, ordemGlobal: (ordemObra < 0 ? 0 : ordemObra) * 100000 + p.ordem });
+  }
+  return { mapa, obras: obrasLocais, catalogo: cat };
+}
+
+/* Resumo montado do espelho local. */
+export async function resumoLocal() {
+  const { mapa, obras, catalogo } = await paginasConhecidas();
   const paginas = [];
   const contagens = { tracos: 0, marcacoes: 0, notas: 0 };
   let ultima = null;
   for (const k of await chaves("anot:")) {
     const a = await obter(k);
     if (!a) continue;
-    const p = sumario?.paginas.find((x) => x.id === a.pagina_id);
+    const p = mapa.get(a.pagina_id);
     const item = {
       pagina_id: a.pagina_id, tracos: a.tracos?.length ?? 0, marcacoes: a.marcacoes?.length ?? 0, notas: a.notas?.length ?? 0,
       visitas: a.leitura?.visitas ?? 0, posicao: a.leitura?.posicao ?? 0, ultima_em: a.leitura?.ultima_em ?? null,
-      ordem: p?.ordem ?? 0, rotulo: p?.rotulo ?? a.pagina_id, nome: p?.nome ?? "", livro: p?.livro ?? "", trilha: (p?.trilha ?? []).map((t) => t.rotulo).join(" › "),
+      ordem: p?.ordemGlobal ?? 0, rotulo: p?.rotulo ?? a.pagina_id, nome: p?.nome ?? "", livro: p?.livro ?? "",
+      obra_id: p?.obra_id ?? "", obra_sigla: p?.obra_sigla ?? "", trilha: (p?.trilha ?? []).map((t) => t.rotulo).join(" › "),
     };
     contagens.tracos += item.tracos; contagens.marcacoes += item.marcacoes; contagens.notas += item.notas;
     if (item.tracos + item.marcacoes + item.notas > 0 || item.visitas > 0) paginas.push(item);
     if (item.ultima_em && (!ultima || item.ultima_em > ultima.ultima_em)) ultima = item;
   }
   paginas.sort((a, b) => a.ordem - b.ordem);
+  const porObra = new Map();
+  for (const it of paginas) {
+    if (!it.obra_id) continue;
+    const o = obras.find((x) => x.id === it.obra_id);
+    const e = porObra.get(it.obra_id) ?? { obra_id: it.obra_id, sigla: it.obra_sigla, nome: o?.nome ?? "", total: o?.paginas ?? 0, lidas: 0, tracos: 0, marcacoes: 0, notas: 0, ultima_em: null, ultima_pagina: null };
+    if (it.visitas > 0) e.lidas += 1;
+    e.tracos += it.tracos; e.marcacoes += it.marcacoes; e.notas += it.notas;
+    if (it.ultima_em && (!e.ultima_em || it.ultima_em > e.ultima_em)) { e.ultima_em = it.ultima_em; e.ultima_pagina = it.pagina_id; }
+    porObra.set(it.obra_id, e);
+  }
   return {
-    offline: true, atualizado_ate: sumario?.atualizado_ate ?? "", total_paginas: sumario?.paginas.length ?? 0,
-    paginas_lidas: paginas.filter((p) => p.visitas > 0).length, contagens,
-    ultima: ultima ? { pagina_id: ultima.pagina_id, posicao: ultima.posicao, ultima_em: ultima.ultima_em, rotulo: ultima.rotulo, nome: ultima.nome, trilha: ultima.trilha } : null,
+    offline: true, atualizado_ate: "", total_paginas: mapa.size, total_obras: catalogo.obras.length,
+    paginas_lidas: paginas.filter((p) => p.visitas > 0).length, contagens, obras: [...porObra.values()],
+    ultima: ultima ? { pagina_id: ultima.pagina_id, posicao: ultima.posicao, ultima_em: ultima.ultima_em, rotulo: ultima.rotulo, nome: ultima.nome, trilha: ultima.trilha, obra_id: ultima.obra_id, obra_sigla: ultima.obra_sigla } : null,
     paginas,
   };
 }
 
-export async function revisaoLocal(sumario) {
+export async function revisaoLocal() {
+  const { mapa } = await paginasConhecidas();
   const itens = [];
   for (const k of await chaves("anot:")) {
     const a = await obter(k);
     if (!a) continue;
-    const p = sumario?.paginas.find((x) => x.id === a.pagina_id);
+    if (!(a.marcacoes?.length || a.notas?.length)) continue;
+    const p = mapa.get(a.pagina_id);
     const pagina = await obter(`texto:pagina:${a.pagina_id}`);
     const ordemDisp = [];
     const refs = new Map();
     if (pagina) for (const art of pagina.artigos) for (const d of art.dispositivos) { ordemDisp.push(d.id); refs.set(d.id, d.rotulo ? `${art.rotulo}, ${d.rotulo}` : art.rotulo); }
     const base = (tipo, m) => ({
-      tipo, ...m, pagina_id: a.pagina_id, ordem: p?.ordem ?? 0, posicao: ordemDisp.indexOf(m.dispositivo_id),
+      tipo, ...m, pagina_id: a.pagina_id, ordem: p?.ordemGlobal ?? 0, posicao: ordemDisp.indexOf(m.dispositivo_id),
       referencia: refs.get(m.dispositivo_id) ?? m.dispositivo_id, pagina_rotulo: p?.rotulo ?? "", pagina_nome: p?.nome ?? "",
+      obra_id: p?.obra_id ?? "", obra_sigla: p?.obra_sigla ?? "",
     });
     for (const m of a.marcacoes ?? []) itens.push(base("marcacao", m));
     for (const n of a.notas ?? []) itens.push(base("nota", n));
@@ -259,43 +296,56 @@ export async function revisaoLocal(sumario) {
 
 /* Busca na cópia local (todas as palavras, sem acento) — a reserva da busca do servidor. */
 const normalizar = (t) => String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
-export async function buscarLocal(consulta, limite = 60) {
+export async function buscarLocal(consulta, obraFiltro = "", limite = 60) {
   const termos = normalizar(consulta).split(" ").filter((t) => t.length >= 2);
   const itens = [];
+  const contagem = new Map();
   let total = 0, paginasLidas = 0;
-  if (!termos.length) return { offline: true, total, itens, paginas: 0, artigo: null };
+  if (!termos.length) return { offline: true, total, itens, paginas: 0, artigo: null, por_obra: [] };
+  const { mapa } = await paginasConhecidas();
   for (const k of await chaves("texto:pagina:")) {
     const p = await obter(k);
     if (!p) continue;
+    const info = mapa.get(p.id);
+    const obraId = info?.obra_id ?? p.obra ?? "cf";
+    if (obraFiltro && obraId !== obraFiltro) continue;
     paginasLidas += 1;
     for (const a of p.artigos) for (const d of a.dispositivos) {
       const n = normalizar(d.texto);
       if (!termos.every((t) => n.includes(t))) continue;
       total += 1;
+      const c = contagem.get(obraId) ?? { obra_id: obraId, obra_sigla: info?.obra_sigla ?? obraId.toUpperCase(), total: 0 };
+      c.total += 1; contagem.set(obraId, c);
       if (itens.length >= limite) continue;
       const pos = n.indexOf(termos[0]);
       const inicio = Math.max(0, pos - 70), fim = Math.min(d.texto.length, pos + termos[0].length + 110);
       itens.push({
+        obra_id: obraId, obra_sigla: info?.obra_sigla ?? obraId.toUpperCase(), ordem: info?.ordemGlobal ?? 0,
         pagina_id: p.id, pagina_rotulo: p.rotulo, pagina_nome: p.nome, trilha: p.trilha.map((t) => t.rotulo).join(" › "),
         artigo_id: a.id, artigo_rotulo: a.rotulo, dispositivo_id: d.id, dispositivo_rotulo: d.rotulo,
         trecho: (inicio > 0 ? "…" : "") + d.texto.slice(inicio, fim) + (fim < d.texto.length ? "…" : ""),
       });
     }
   }
-  itens.sort((x, y) => x.pagina_id.localeCompare(y.pagina_id));
-  return { offline: true, total, itens, paginas: paginasLidas, artigo: acharArtigoNoSumario(consulta, await obter("texto:sumario")) };
+  itens.sort((x, y) => x.ordem - y.ordem);
+  const s = await obter(chaveSumario(obraFiltro || "cf"));
+  const salto = acharArtigoNoSumario(consulta, s);
+  return { offline: true, total, itens, paginas: paginasLidas, artigo: salto ? { ...salto, obra_sigla: s?.obra?.sigla ?? "CF/88" } : null, por_obra: [...contagem.values()].sort((a, b) => b.total - a.total) };
 }
 
-/* "art 5", "37", "adct 2", "103-A" → a página do sumário que lista o artigo. */
+/* "art 5", "37", "adct 2", "103-A", "1.639" → a página do sumário (da obra
+   aberta) que lista o artigo. É o salto que funciona sem internet. */
 export function acharArtigoNoSumario(consulta, sumario) {
   if (!sumario) return null;
-  const q = normalizar(consulta);
-  const m = /^(?:(adct)\s*)?(?:art\.?s?\.?\s*)?(\d{1,3})\s*(?:-\s*)?([a-e])?\b(?:\s*(?:do\s+)?(adct))?/.exec(q);
+  const obraId = sumario.obra?.id ?? "cf";
+  const q = normalizar(consulta).replace(/[º°ª]/g, "");
+  const m = /^(?:(adct)\s*)?(?:arts?\.?\s*)?(\d{1,4}(?:\.\d{3})?)\s*(?:-\s*|\s+)?([a-z]{1,2}(?:-[a-z])?)?\b(?:\s*(?:do\s+)?(adct))?/.exec(q);
   if (!m) return null;
-  const livro = m[1] || m[4] ? "adct" : "cf";
-  const numero = Number(m[2]);
-  const sufixo = m[3] ? `-${m[3].toUpperCase()}` : "";
-  const rotulo = `Art. ${numero}${numero < 10 ? "º" : ""}${sufixo}`;
+  const livro = obraId !== "cf" ? obraId : (m[1] || m[4] ? "adct" : "cf");
+  const numero = Number(m[2].replace(".", ""));
+  const sufixo = m[3] && m[3] !== "do" ? `-${m[3].toUpperCase()}` : "";
+  const n = numero >= 1000 ? `${Math.floor(numero / 1000)}.${String(numero % 1000).padStart(3, "0")}` : String(numero);
+  const rotulo = `Art. ${n}${numero < 10 ? "º" : ""}${sufixo}`;
   const rotuloDe = (a) => (typeof a === "string" ? a : a.rotulo);
   const p = sumario.paginas.find((x) => x.livro === livro && x.artigos.some((a) => rotuloDe(a) === rotulo));
   if (!p) return null;
@@ -303,36 +353,46 @@ export function acharArtigoNoSumario(consulta, sumario) {
   return { pagina_id: p.id, artigo_id: (achado && achado.id) || `${livro}-art-${numero}${sufixo.toLowerCase()}`, rotulo };
 }
 
-/* ---------- baixar tudo para uso offline ---------- */
-export async function baixarTudo(aoProgredir = () => {}) {
+/* ---------- baixar para uso offline, lei por lei ---------- */
+export async function obrasBaixadas() {
+  const ids = (await chaves("meta:baixado:")).map((k) => k.slice("meta:baixado:".length));
+  /* quem baixou "tudo" quando só existia a Constituição */
+  if (!ids.includes("cf") && (await obter("meta:baixado_em"))) ids.push("cf");
+  return ids;
+}
+
+/* Baixa as obras pedidas: o texto inteiro de cada uma vem numa resposta só;
+   das anotações, só as páginas que têm alguma (o resumo diz quais). */
+export async function baixarObras(ids, aoProgredir = () => {}) {
   await esvaziar();
-  const s = await api.get("/api/v1/texto/sumario");
-  await guardar("texto:sumario", s);
-  const versaoTexto = await obter("texto:versao");
-  const total = s.paginas.length;
-  let feitas = 0;
-  const lista = [...s.paginas];
-  const trabalhador = async () => {
-    while (lista.length) {
-      const p = lista.shift();
-      const pedidos = [api.get(`/api/v1/paginas/${encodeURIComponent(p.id)}/anotacoes`).then((a) => guardar(`anot:${p.id}`, a))];
-      if (versaoTexto !== s.atualizado_ate || !(await obter(`texto:pagina:${p.id}`))) {
-        pedidos.push(api.get(`/api/v1/texto/paginas/${encodeURIComponent(p.id)}`).then((t) => guardar(`texto:pagina:${p.id}`, t)));
-      }
-      await Promise.all(pedidos);
-      feitas += 1;
-      aoProgredir(feitas, total, p);
+  const cat = await api.get("/api/v1/texto/obras");
+  await guardar("texto:obras", cat);
+  const resumo = await api.get("/api/v1/resumo");
+  await guardar("resumo", resumo);
+  const agora = new Date().toISOString();
+  let feitas = 0, paginas = 0;
+  for (const id of ids) {
+    const meta = cat.obras.find((o) => o.id === id);
+    aoProgredir(feitas, ids.length, meta, "texto");
+    const completo = await api.requisicao("GET", `/api/v1/texto/obras/${encodeURIComponent(id)}/completo`, undefined, { tempoLimite: 90_000 });
+    await guardar(chaveSumario(id), completo.sumario);
+    for (const p of completo.paginas) await guardar(`texto:pagina:${p.id}`, p);
+    paginas += completo.paginas.length;
+    const anotadas = resumo.paginas.filter((p) => p.obra_id === id);
+    for (const p of anotadas) {
+      await guardar(`anot:${p.pagina_id}`, await api.get(`/api/v1/paginas/${encodeURIComponent(p.pagina_id)}/anotacoes`));
     }
-  };
-  await Promise.all([trabalhador(), trabalhador(), trabalhador(), trabalhador()]);
-  await guardar("texto:versao", s.atualizado_ate);
-  for (const [caminho, chave] of [["/api/v1/preferencias", "prefs"], ["/api/v1/eu", "eu"], ["/api/v1/resumo", "resumo"], ["/api/v1/anotacoes", "revisao"]]) {
+    await guardar(`meta:baixado:${id}`, agora);
+    feitas += 1;
+    aoProgredir(feitas, ids.length, meta, "pronto");
+  }
+  for (const [caminho, chave] of [["/api/v1/preferencias", "prefs"], ["/api/v1/eu", "eu"], ["/api/v1/anotacoes", "revisao"]]) {
     await guardar(chave, await api.get(caminho));
   }
-  estado.baixadoEm = new Date().toISOString();
-  await guardar("meta:baixado_em", estado.baixadoEm);
+  estado.baixadoEm = agora;
+  await guardar("meta:baixado_em", agora);
   notificar();
-  return { paginas: total };
+  return { obras: feitas, paginas };
 }
 
 export async function iniciarArmazem() {

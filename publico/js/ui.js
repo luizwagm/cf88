@@ -114,7 +114,10 @@ export function ehClara(hex) {
 /* ---------- Formatação ---------- */
 export function fmtData(iso) {
   if (!iso) return "—";
-  const d = new Date(iso);
+  /* data pura ("2026-10-04") é dia de calendário, não instante: lida como
+     UTC, cairia no dia anterior em Caruaru */
+  const so = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  const d = so ? new Date(Number(so[1]), Number(so[2]) - 1, Number(so[3])) : new Date(iso);
   if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 }
@@ -149,6 +152,8 @@ export function rotuloFalado(artigo, dispositivo) {
   if (dispositivo.tipo === "paragrafo") return dispositivo.rotulo.replace("§", "parágrafo");
   if (dispositivo.tipo === "alinea") return `alínea ${dispositivo.rotulo.replace(")", "")}`;
   if (dispositivo.tipo === "item") return `item ${dispositivo.rotulo.replace(".", "")}`;
+  if (dispositivo.tipo === "pena") return "Pena";
+  if (dispositivo.tipo === "rubrica" || dispositivo.tipo === "citacao") return "";
   return dispositivo.rotulo;
 }
 

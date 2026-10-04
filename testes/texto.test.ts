@@ -12,7 +12,7 @@ before(() => { carregarTexto(); });
 describe("conteúdo da Constituição", () => {
   it("tem os dois livros, o preâmbulo e o Art. 250", () => {
     const c = texto();
-    assert.equal(c.livros.length, 2);
+    assert.equal(c.livros!.length, 2);
     assert.equal(c.paginas[0]!.id, "cf-preambulo");
     assert.match(c.paginas[0]!.artigos[0]!.dispositivos[0]!.texto, /^Nós, representantes do povo brasileiro/);
     assert.ok(acharArtigo("art. 250"));

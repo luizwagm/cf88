@@ -8,7 +8,7 @@ import { log } from "./nucleo/log.ts";
 import { VERSAO } from "./nucleo/versao.ts";
 import { abrirBanco, fecharBanco, banco } from "./dados/bd.ts";
 import { migrar } from "./dados/migrar.ts";
-import { carregarTexto } from "./dados/texto.ts";
+import { carregarTexto, obras, totalDePaginas } from "./dados/texto.ts";
 import { montarApi } from "./api/index.ts";
 import { ouvir } from "./http/servidor.ts";
 
@@ -16,8 +16,8 @@ async function principal(): Promise<void> {
   conferirConfig();
   console.log(`\n  LA Carta ${VERSAO} — ${config.ambiente} (${config.banco.tipo})\n`);
 
-  const c = carregarTexto();
-  log.info("conteúdo carregado", { paginas: c.paginas.length, atualizado_ate: c.atualizado_ate });
+  carregarTexto();
+  log.info("conteúdo carregado", { obras: obras().length, paginas: totalDePaginas() });
 
   await abrirBanco();
   const { aplicadas } = await migrar();

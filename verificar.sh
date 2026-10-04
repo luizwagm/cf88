@@ -28,7 +28,7 @@ for P in / /estilo.css /js/app.js /js/leitor.js /js/tinta.js /js/voz.js /js/arma
   C=$(cod "$U$P"); [ "$C" = "200" ] && ok "$P 200" || ruim "$P respondeu $C"
 done
 # O que NUNCA pode sair: por lugar, não por extensão.
-for P in /package.json /src/servidor.ts /conteudo/cf88.json /dados/carta.db /.env /sql/001_esquema.sql /js/../package.json /operacao/lacarta.service; do
+for P in /package.json /src/servidor.ts /conteudo/cf88.json /conteudo/indice.json /conteudo/obras/cp.json /dados/carta.db /.env /sql/001_esquema.sql /js/../package.json /operacao/lacarta.service; do
   C=$(cod "$U$P"); { [ "$C" = "404" ] || [ "$C" = "400" ]; } && ok "$P não é servido ($C)" || ruim "$P respondeu $C — VAZAMENTO"
 done
 # A API sem sessão fecha a porta (401), e sem o cabeçalho anti-CSRF recusa (403).
