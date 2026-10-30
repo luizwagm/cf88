@@ -1,8 +1,17 @@
 # LA Carta
 
 A Constituição da República Federativa do Brasil (texto compilado até a EC 139/2026,
-edição administrativa do Senado Federal) como um **caderno de estudo** para tablet com
-caneta — Galaxy Tab S10 + S Pen em primeiro lugar, mas qualquer navegador moderno serve.
+edição administrativa do Senado Federal) e 83 leis federais como um **caderno de estudo**
+— no tablet com caneta (Galaxy Tab S10 + S Pen em primeiro lugar), no celular e no
+computador.
+
+| Aparelho | Como se marca |
+|---|---|
+| Tablet com caneta | caneta e marca-texto sobre a folha, seleção para marcar trecho |
+| Celular | toque no trecho: folha com cores, "marcar só uma parte", nota, ouvir; botão **Desenhar** para a tinta |
+| Computador | seleção com o mouse e atalhos 1–6, S, R, N, O; botão ⋯ ao lado de cada trecho; **/** busca |
+
+O modo é detectado sozinho e pode ser fixado em **Ajustes › Modo de uso**.
 
 - Login pessoal; tudo o que se anota é do usuário e só dele.
 - Texto em **páginas** (título, capítulo, seção ou subseção; o ADCT em blocos de 10 artigos),
@@ -33,11 +42,16 @@ npm run leis -- --so cp,cpp       # só estas
 O extrator (`ferramentas/leis/`) confere cada lei contra o último artigo esperado e **recusa**
 a que não fechar a conta. Para acrescentar uma lei, uma linha em `ferramentas/leis/catalogo.ts`.
 Os ids são por caminho (`cp-art-121-p2-i6`), então atualizar o texto não solta as anotações.
-Depois de atualizar: conferir a saída, `npm test`, commit e deploy.
+
+**No servidor, a atualização é automática**: `operacao/lacarta-leis.timer` roda
+`npm run atualizar-leis` todo dia às 05:15. Ele pergunta ao Planalto só se a página mudou
+(ETag), valida, monta numa pasta de ensaio e troca `dados/leis/` de uma vez; o site percebe
+e recarrega em até 1 minuto. Entre `conteudo/` (o que vai no git) e `dados/leis/` (o que o
+servidor baixou) vale o mais novo. Uma lei que vier quebrada fica na versão anterior.
 
 ## No tablet e sem internet
 
-Menu do avatar › **Instalar no tablet** (PWA em tela cheia) e **Baixar para usar sem
+Menu do avatar › **Instalar o aplicativo** (PWA em tela cheia) e **Baixar para usar sem
 internet** (texto inteiro + anotações no IndexedDB). Depois disso, ler, escrever, marcar
 e ouvir funcionam offline; o que for anotado entra numa fila persistente e sobe quando a
 rede volta — os ids nascem no cliente e o servidor ignora reenvio repetido. O chip no topo
@@ -57,7 +71,8 @@ As marcações de trecho são intervalos de caracteres, imunes a reflow por natu
 cp .env.exemplo .env          # ajuste CARTA_SEGREDO_SESSAO
 npm run semear                # cria o usuário inicial e imprime a senha
 npm start                     # http://127.0.0.1:5209
-npm test                      # 34 provas: conteúdo + API real
+npm test                      # 79 provas: conteúdo, Vade Mecum, atualização, API, offline, operação
+npm run usuario -- criar ana@exemplo.com "Ana"   # conta para quem vai testar (senha sai uma vez)
 ```
 
 Requer Node ≥ 24 (TypeScript roda direto, sem build). Banco SQLite embutido por padrão

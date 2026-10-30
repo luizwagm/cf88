@@ -13,7 +13,7 @@ const VERSAO = "__VERSAO__";
 const CACHE = `carta-casca-${VERSAO}`;
 const CASCA = [
   "/", "/index.html", "/estilo.css", "/manifest.webmanifest", "/robots.txt",
-  "/js/api.js", "/js/ui.js", "/js/voz.js", "/js/tinta.js", "/js/armazem.js", "/js/leitor.js", "/js/telas.js", "/js/app.js",
+  "/js/api.js", "/js/ui.js", "/js/aparelho.js", "/js/voz.js", "/js/tinta.js", "/js/armazem.js", "/js/leitor.js", "/js/telas.js", "/js/app.js",
   "/icones/icone-192.png", "/icones/icone-512.png", "/icones/icone-mascara-512.png",
 ];
 

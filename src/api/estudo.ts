@@ -6,7 +6,7 @@ import type { Roteador } from "../http/roteador.ts";
 import { corpoObjeto } from "../http/roteador.ts";
 import { banco } from "../dados/bd.ts";
 import { erroValidacao } from "../nucleo/erros.ts";
-import { texto as conteudo, pagina as acharPagina, obraDaPagina, obras, ordemGlobal, totalDePaginas, dispositivo as acharDispositivo } from "../dados/texto.ts";
+import { texto as conteudo, pagina as acharPagina, obraDaPagina, obras, ordemGlobal, totalDePaginas, referencia } from "../dados/texto.ts";
 import { PREFERENCIAS_PADRAO } from "../dados/semear.ts";
 
 const LIMITES_PREF: Record<string, (v: string) => boolean> = {
@@ -104,11 +104,7 @@ export function registrarEstudo(r: Roteador): void {
       for (const a of p.artigos) for (const d of a.dispositivos) { i += 1; if (d.id === dispositivoId) return i; }
       return 0;
     };
-    const rotuloDe = (dispositivoId: string) => {
-      const x = acharDispositivo(dispositivoId);
-      if (!x) return "";
-      return x.dispositivo.rotulo ? `${x.artigo.rotulo}, ${x.dispositivo.rotulo}` : x.artigo.rotulo;
-    };
+    const rotuloDe = referencia;
     type Item = Record<string, unknown> & { pagina_id: string; dispositivo_id: string; criado_em: string };
     const marcar = (tipo: string, lista: Item[]) => lista.map((m) => ({
       tipo, ...m, ordem: ordemDe(m.pagina_id), posicao: posicaoDe(m.pagina_id, m.dispositivo_id), referencia: rotuloDe(m.dispositivo_id),

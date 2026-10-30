@@ -1,0 +1,10 @@
+[Unit]
+Description=LA Carta — atualização diária das leis às 05:15 (depois do LA Backup das 04:00)
+
+[Timer]
+OnCalendar=*-*-* 05:15:00
+Persistent=true
+RandomizedDelaySec=20min
+
+[Install]
+WantedBy=timers.target

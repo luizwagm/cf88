@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.6.0 — 2026-10-30
+
+**Celular e computador, e as leis se atualizam sozinhas.** O tablet com caneta fica como
+era; o caderno passa a servir também a quem não tem caneta.
+
+- **O aparelho se identifica** (`publico/js/aparelho.js`): ponteiro principal fino/grosso e
+  o menor lado da tela decidem entre tablet, celular e computador; a primeira vez que uma
+  caneta toca a tela, o aparelho vira tablet. O modo pode ser fixado em **Ajustes › Modo de
+  uso**, e a ferramenta escolhida é lembrada por aparelho.
+- **Celular**: tocar num trecho abre uma folha de baixo com as cores (marca o texto todo),
+  **Marcar só uma parte** (toca-se a primeira e a última palavra), sublinhar, riscar, nota,
+  ouvir e copiar, mais a lista das marcações já feitas ali, cada uma com remover. A seleção
+  nativa também vira folha. A tinta continua disponível pelo botão **Desenhar** da barra
+  (o estojo aparece na horizontal; "Pronto" volta à leitura).
+- **Computador**: botão ⋯ ao passar o mouse em cada trecho (mesmo painel, flutuando ao
+  lado); seleção com o mouse e atalhos **1–6** (cores), **S** sublinhar, **R** riscar,
+  **N** nota, **O** ouvir, **Esc** fecha; **/** vai para a busca.
+- No celular e no computador a seleção cresce até a **palavra inteira** (mouse e dedo
+  erram a borda); a caneta continua exata.
+- A referência do trecho leva o pai: **"Art. 121, § 2º-B, II"**, não "Art. 121, II", que
+  confundia com o inciso do caput (folha de ações, revisão, notas e voz).
+- **Atualização automática das leis** (`ferramentas/leis/atualizar.ts` +
+  `operacao/lacarta-leis.timer`, 05:15): GET condicional no Planalto (ETag/Last-Modified,
+  só baixa o que mudou), validação de cada lei (a que não fechar a conta fica na versão
+  anterior), montagem numa pasta de ensaio e troca atômica em `dados/leis/`, com trava e
+  histórico (quantos dispositivos mudaram de **texto** e quantos só ganharam **nota**).
+  O servidor recarrega o texto sozinho em até 1 minuto, sem reiniciar e sem tocar o git.
+  Confere também se a Constituição ganhou emenda depois da EC do PDF e avisa.
+- Biblioteca com **Atualizações do Planalto** e avisos; tela da lei com "conferido no
+  Planalto há…" e "Atualizada em…". O que estava baixado para uso offline é baixado de
+  novo em segundo plano quando a lei muda (versão por obra).
+- Marcação cuja lei mudou por baixo é **realocada** para o trecho igual mais próximo; se o
+  trecho sumiu, aparece como "marcação órfã" com o texto antigo e um botão de remover.
+- `ferramentas/usuario.ts`: criar, listar, trocar senha (derruba as sessões), desativar e
+  reativar contas de quem vai testar.
+- 79 provas: Planalto falso para a atualização, unidades novas, referência.
+
 ## 1.5.0 — 2026-10-04
 
 **Vade Mecum.** O caderno deixa de ser só a Constituição: 83 leis federais entram ao lado

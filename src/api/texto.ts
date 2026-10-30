@@ -5,13 +5,26 @@
    ========================================================================== */
 import type { Roteador } from "../http/roteador.ts";
 import { erroNaoEncontrado, erroValidacao } from "../nucleo/erros.ts";
-import { sumarioLeve, pagina, buscar, acharArtigo, obras, categorias, obra, existeObra } from "../dados/texto.ts";
+import { sumarioLeve, pagina, buscar, acharArtigo, obras, categorias, obra, existeObra, infoConteudo } from "../dados/texto.ts";
 
 const CACHE = { "Cache-Control": "private, max-age=3600" };
 
 export function registrarTexto(r: Roteador): void {
-  /* A estante: todas as obras, por categoria. */
-  r.get("/api/v1/texto/obras", async () => ({ corpo: { categorias: categorias(), obras: obras() }, cabecalhos: CACHE }));
+  /* A estante: todas as obras, por categoria, com a VERSÃO de cada uma (o
+     app compara para saber que a lei mudou) e o histórico de atualizações.
+     Sem cache: é por aqui que o tablet descobre o texto novo. */
+  r.get("/api/v1/texto/obras", async () => {
+    const info = infoConteudo();
+    const limite = new Date(Date.now() - 90 * 86_400_000).toISOString();
+    return {
+      corpo: {
+        categorias: categorias(), obras: obras(),
+        gerado_em: info.gerado_em, verificado_em: info.verificado_em, origem: info.origem, alertas: info.alertas,
+        atualizacoes: info.atualizacoes.filter((a) => a.em >= limite).slice(-40).reverse(),
+      },
+      cabecalhos: { "Cache-Control": "private, no-cache" },
+    };
+  });
 
   /* Sumário de uma obra (sem ?obra é a Constituição — o que sempre foi). */
   r.get("/api/v1/texto/sumario", async (ctx) => {

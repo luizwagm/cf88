@@ -12,6 +12,7 @@ import * as voz from "./voz.js";
 import * as armazem from "./armazem.js";
 import { telaEstante, telaSumario, telaObra, telaAnotacoes, telaBusca, telaAjustes, arvoreSumario } from "./telas.js";
 import { telaLeitor, limparLeitor, salvarPendentes } from "./leitor.js";
+import { modo, aplicarModo, aoMudarModo } from "./aparelho.js";
 
 let eu = null;
 let catalogo = { categorias: [], obras: [] };   // todas as leis do Vade Mecum
@@ -34,8 +35,39 @@ export function metaDaObra(id) { return catalogo.obras.find((o) => o.id === id) 
 /* O sumário da obra aberta (já carregado pelo roteador antes de a tela nascer). */
 export function sumario() { return sumarios.get(obraAberta) ?? null; }
 export async function sumarioDe(id) {
-  if (!sumarios.has(id)) sumarios.set(id, await armazem.lerSumario(id));
+  if (!sumarios.has(id)) sumarios.set(id, await armazem.lerSumario(id, metaDaObra(id)?.versao));
   return sumarios.get(id);
+}
+
+/* ---------- leis atualizadas no Planalto ----------
+   O catálogo traz a versão de cada lei. Mudou: o sumário em memória cai, e a
+   cópia offline (se houver) é renovada em segundo plano, sem perguntar — o
+   estudante só fica sabendo pelo aviso. As anotações não são tocadas. */
+let renovando = false;
+async function conferirLeis(catalogoNovo) {
+  const mudaram = catalogoNovo.obras.filter((o) => { const v = metaDaObra(o.id)?.versao; return v && o.versao && v !== o.versao; }).map((o) => o.id);
+  catalogo = catalogoNovo;
+  for (const id of mudaram) sumarios.delete(id);
+  if (!armazem.estado.online || renovando) return mudaram;
+  const desatualizadas = await armazem.obrasDesatualizadas(catalogo);
+  if (!desatualizadas.length) return mudaram;
+  renovando = true;
+  try {
+    await armazem.baixarObras(desatualizadas);
+    const siglas = desatualizadas.map((id) => metaDaObra(id)?.sigla ?? id);
+    avisar(`Texto novo do Planalto guardado no aparelho: ${siglas.slice(0, 4).join(", ")}${siglas.length > 4 ? ` e mais ${siglas.length - 4}` : ""}.`);
+    montarMenuUsuario();
+  } catch { /* tenta de novo na próxima conferência */ }
+  finally { renovando = false; }
+  return mudaram;
+}
+async function recarregarCatalogo() {
+  try {
+    const novo = await armazem.lerObras();
+    const mudaram = await conferirLeis(novo);
+    const abertaMudou = mudaram.includes(obraAberta);
+    if (abertaMudou && /^#\/(obra|ler)\//.test(window.location.hash)) avisarComAcao(`${metaDaObra(obraAberta)?.sigla ?? "A lei"} foi atualizada no Planalto.`, "Ver texto novo", () => void navegar());
+  } catch { /* offline */ }
 }
 export function definirObraAtual(id) {
   if (!metaDaObra(id)) return;
@@ -157,6 +189,7 @@ const jaInstalado = () => window.matchMedia("(display-mode: standalone)").matche
 
 async function instalarNoTablet() {
   if (jaInstalado()) return avisar("O LA Carta já está instalado neste aparelho.");
+  const computador = modo() === "computador";
   if (promptInstalacao) {
     const p = promptInstalacao;
     promptInstalacao = null;
@@ -167,10 +200,11 @@ async function instalarNoTablet() {
   }
   const samsung = /SamsungBrowser/i.test(navigator.userAgent);
   const ios = /iPhone|iPad/i.test(navigator.userAgent);
-  abrirModal("Instalar no tablet",
+  abrirModal("Instalar o aplicativo",
     el("div", { classe: "instrucoes" },
       el("p", {}, "O navegador não ofereceu a instalação automática. Faça pelo menu do próprio navegador:"),
-      samsung ? el("ol", {}, el("li", {}, "Toque no menu ", el("b", {}, "☰"), " (canto inferior direito) do Samsung Internet."), el("li", {}, "Toque em ", el("b", {}, "Adicionar página a"), " › ", el("b", {}, "Tela inicial"), "."), el("li", {}, "Confirme. O ícone do LA Carta aparece entre os aplicativos."))
+      computador ? el("ol", {}, el("li", {}, "No Chrome ou no Edge, clique no ícone ", el("b", {}, "Instalar"), " no fim da barra de endereço (um monitor com uma seta)."), el("li", {}, "Ou abra o menu ", el("b", {}, "⋮"), " › ", el("b", {}, "Transmitir, salvar e compartilhar"), " › ", el("b", {}, "Instalar página como app"), "."), el("li", {}, "O LA Carta passa a abrir numa janela própria, como um programa."))
+      : samsung ? el("ol", {}, el("li", {}, "Toque no menu ", el("b", {}, "☰"), " (canto inferior direito) do Samsung Internet."), el("li", {}, "Toque em ", el("b", {}, "Adicionar página a"), " › ", el("b", {}, "Tela inicial"), "."), el("li", {}, "Confirme. O ícone do LA Carta aparece entre os aplicativos."))
         : ios ? el("ol", {}, el("li", {}, "Toque em ", el("b", {}, "Compartilhar"), " (o quadrado com a seta)."), el("li", {}, "Toque em ", el("b", {}, "Adicionar à Tela de Início"), "."))
         : el("ol", {}, el("li", {}, "Toque no menu ", el("b", {}, "⋮"), " do Chrome."), el("li", {}, "Toque em ", el("b", {}, "Instalar app"), " (ou ", el("b", {}, "Adicionar à tela inicial"), ")."), el("li", {}, "Confirme. O ícone do LA Carta aparece entre os aplicativos.")),
       el("p", { style: "color: var(--tinta-3); font-size: .86rem" }, "Instalado, ele abre em tela cheia, sem a barra do navegador — e funciona sem internet depois de baixar o caderno."),
@@ -292,6 +326,7 @@ export async function verificarAtualizacao(motivo = "manual") {
   } catch { /* offline: fica como está */ }
   if (registroSw?.waiting) observarWorker(registroSw.waiting);
   anunciarAtualizacao();
+  if (eu) void recarregarCatalogo();
   return temAtualizacao();
 }
 
@@ -345,7 +380,7 @@ function montarMenuUsuario() {
     el("a", { href: "#/busca", aoClicar: fechar }, icone("buscar", 18), "Buscar"),
     el("a", { href: "#/ajustes", aoClicar: fechar }, icone("engrenagem", 18), "Ajustes"),
     el("div", { classe: "divisoria" }),
-    el("button", { classe: "item", type: "button", aoClicar: () => { fechar(); void instalarNoTablet(); } }, icone("instalar", 18), el("span", {}, "Instalar no tablet", el("small", {}, jaInstalado() ? "já instalado neste aparelho" : "abre como aplicativo, em tela cheia"))),
+    el("button", { classe: "item", type: "button", aoClicar: () => { fechar(); void instalarNoTablet(); } }, icone("instalar", 18), el("span", {}, "Instalar o aplicativo", el("small", {}, jaInstalado() ? "já instalado neste aparelho" : modo() === "computador" ? "abre numa janela própria" : "abre em tela cheia, como app"))),
     el("button", { classe: "item", type: "button", aoClicar: () => { fechar(); void baixarParaOffline(); } }, icone("baixar", 18), el("span", {}, "Baixar para usar sem internet", el("small", {}, baixado ? `cópia local de ${fmtRelativo(baixado)} · escolher leis` : "escolha as leis + suas anotações"))),
     temAtualizacao()
       ? el("button", { classe: "item destaque", type: "button", aoClicar: () => { fechar(); void aplicarAtualizacao(); } }, icone("atualizar", 18), el("span", {}, `Atualizar o aplicativo${atualizacao.versaoNova ? ` para a ${atualizacao.versaoNova}` : ""}`, el("small", {}, "pronta para instalar · leva um segundo")))
@@ -405,11 +440,24 @@ async function mostrarAplicacao() {
   document.getElementById("tela-login").classList.add("escondido");
   document.getElementById("aplicacao").classList.remove("escondido");
   montarMenuUsuario();
-  if (!armazem.estado.online) avisar("Sem internet: abrindo com a cópia guardada no tablet.");
+  if (!armazem.estado.online) avisar("Sem internet: abrindo com a cópia guardada no aparelho.");
   await navegar();
+  void conferirLeis(catalogo);
 }
 
 async function iniciar() {
+  aplicarModo();
+  /* trocou o modo em Ajustes (ou a caneta apareceu): refaz a tela aberta */
+  aoMudarModo(() => { if (document.getElementById("aplicacao") && !document.getElementById("aplicacao").classList.contains("escondido")) void navegar(); });
+  /* computador: "/" vai para a busca, como nos sites de documentação */
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+    const ativo = document.activeElement;
+    if (ativo && (/^(INPUT|TEXTAREA|SELECT)$/.test(ativo.tagName) || ativo.isContentEditable)) return;
+    const campo = document.getElementById("busca-rapida-campo");
+    e.preventDefault();
+    if (campo && campo.offsetParent) campo.focus(); else irPara("#/busca");
+  });
   definirQuedaDeSessao(() => { avisar("Sessão expirada — entre de novo.", "erro"); mostrarLogin(); });
   await armazem.iniciarArmazem();
   montarChipRede();

@@ -181,8 +181,11 @@ export async function ler(caminho, chave, opcoes = {}) {
    tinha a cópia offline continua com ela. As demais obras ganham a sua. */
 const chaveSumario = (obra) => (!obra || obra === "cf" ? "texto:sumario" : `texto:sumario:${obra}`);
 export const lerObras = () => ler("/api/v1/texto/obras", "texto:obras");
-export const lerSumario = (obra = "cf") => ler(`/api/v1/texto/sumario?obra=${encodeURIComponent(obra)}`, chaveSumario(obra), { semCopia: "Esta lei ainda não foi baixada para uso offline." });
-export const lerPagina = (id) => ler(`/api/v1/texto/paginas/${encodeURIComponent(id)}`, `texto:pagina:${id}`, { semCopia: "Esta página ainda não foi baixada para uso offline." });
+/* `v` é a versão da obra (hash do arquivo no servidor): entra no endereço só
+   para o cache HTTP do navegador não servir o texto de antes da atualização. */
+const comVersao = (v) => (v ? `v=${encodeURIComponent(v)}` : "");
+export const lerSumario = (obra = "cf", v = "") => ler(`/api/v1/texto/sumario?obra=${encodeURIComponent(obra)}${v ? "&" + comVersao(v) : ""}`, chaveSumario(obra), { semCopia: "Esta lei ainda não foi baixada para uso offline." });
+export const lerPagina = (id, v = "") => ler(`/api/v1/texto/paginas/${encodeURIComponent(id)}${v ? "?" + comVersao(v) : ""}`, `texto:pagina:${id}`, { semCopia: "Esta página ainda não foi baixada para uso offline." });
 export const lerAnotacoes = (id) => ler(`/api/v1/paginas/${encodeURIComponent(id)}/anotacoes`, `anot:${id}`).catch(async (e) => {
   if (e.status !== 0) throw e;
   return { pagina_id: id, tracos: [], marcacoes: [], notas: [], leitura: null };
@@ -374,7 +377,7 @@ export async function baixarObras(ids, aoProgredir = () => {}) {
   for (const id of ids) {
     const meta = cat.obras.find((o) => o.id === id);
     aoProgredir(feitas, ids.length, meta, "texto");
-    const completo = await api.requisicao("GET", `/api/v1/texto/obras/${encodeURIComponent(id)}/completo`, undefined, { tempoLimite: 90_000 });
+    const completo = await api.requisicao("GET", `/api/v1/texto/obras/${encodeURIComponent(id)}/completo${meta?.versao ? "?" + comVersao(meta.versao) : ""}`, undefined, { tempoLimite: 90_000 });
     await guardar(chaveSumario(id), completo.sumario);
     for (const p of completo.paginas) await guardar(`texto:pagina:${p.id}`, p);
     paginas += completo.paginas.length;
@@ -383,6 +386,7 @@ export async function baixarObras(ids, aoProgredir = () => {}) {
       await guardar(`anot:${p.pagina_id}`, await api.get(`/api/v1/paginas/${encodeURIComponent(p.pagina_id)}/anotacoes`));
     }
     await guardar(`meta:baixado:${id}`, agora);
+    if (meta?.versao) await guardar(`meta:versao:${id}`, meta.versao);
     feitas += 1;
     aoProgredir(feitas, ids.length, meta, "pronto");
   }
@@ -393,6 +397,18 @@ export async function baixarObras(ids, aoProgredir = () => {}) {
   await guardar("meta:baixado_em", agora);
   notificar();
   return { obras: feitas, paginas };
+}
+
+/* Leis baixadas cujo texto mudou no servidor desde o download (a versão é o
+   hash do arquivo da obra). Cópia antiga sem versão gravada também conta. */
+export async function obrasDesatualizadas(catalogo) {
+  const saida = [];
+  for (const id of await obrasBaixadas()) {
+    const meta = catalogo.obras.find((o) => o.id === id);
+    if (!meta?.versao) continue;
+    if ((await obter(`meta:versao:${id}`)) !== meta.versao) saida.push(id);
+  }
+  return saida;
 }
 
 export async function iniciarArmazem() {

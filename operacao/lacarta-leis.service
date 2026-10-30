@@ -1,0 +1,35 @@
+[Unit]
+Description=LA Carta — confere as leis no Planalto e atualiza o Vade Mecum
+Documentation=file:///var/www/projetos/LA-Carta/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+WorkingDirectory=/var/www/projetos/LA-Carta
+Environment=CARTA_AMBIENTE=producao
+EnvironmentFile=-/var/www/projetos/LA-Carta/.env
+
+# A pasta de escrita nasce aqui (ProtectSystem=strict ignora ReadWritePaths
+# de pasta que ainda não existe — lição do Corte Sam).
+ExecStartPre=+/bin/mkdir -p /var/www/projetos/LA-Carta/dados
+ExecStartPre=+/bin/chown deploy:deploy /var/www/projetos/LA-Carta/dados
+
+# Node 24 próprio (o /usr/bin/node do servidor é a linha 22 dos vizinhos).
+# Grava SÓ em dados/leis e dados/leis-cache; o servidor percebe o índice novo
+# e recarrega sozinho em até 1 minuto — sem reiniciar, sem tocar o git.
+ExecStart=/opt/node24/bin/node ferramentas/leis/atualizar.ts
+TimeoutStartSec=45min
+Nice=10
+
+# NÃO há MemoryDenyWriteExecute: mata o V8 com 5/TRAP.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=-/var/www/projetos/LA-Carta/dados

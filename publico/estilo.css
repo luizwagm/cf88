@@ -498,6 +498,133 @@ canvas.tinta.borracha { cursor: cell; }
 @keyframes colar { from { opacity: 0; transform: rotate(-3deg) translateY(-6px) scale(.96); } to { opacity: 1; transform: rotate(-.4deg); } }
 .folha.virar-tras { --virar-de: -24px; --virar-rot: 4deg; }
 
+/* ==========================================================================
+   APARELHOS — tablet (caneta) fica como sempre foi; celular e computador
+   ganham as ações por toque / por botão, o seletor de palavras e o modo
+   desenho. As classes modo-* ficam no <html> (aparelho.js).
+   ========================================================================== */
+
+/* Botão de ações ao lado do dispositivo: só no computador, ao passar o mouse */
+.disp-mais { display: none; }
+.modo-computador .disp-mais {
+  display: grid; place-items: center; position: absolute; left: -2.3rem; top: .05em; width: 30px; height: 30px;
+  border: 1px solid var(--papel-3); border-radius: 9px; background: #fff; color: var(--tinta-3); cursor: pointer;
+  opacity: 0; transition: opacity var(--transicao), color var(--transicao), border-color var(--transicao); font-family: var(--sans);
+}
+.modo-computador .dispositivo:hover > .disp-mais, .modo-computador .disp-mais:focus-visible, .modo-computador .dispositivo.selecionado > .disp-mais { opacity: 1; }
+.modo-computador .disp-mais:hover { color: var(--acento); border-color: var(--acento); }
+.dispositivo.selecionado { background: var(--acento-suave); box-shadow: 0 0 0 3px var(--acento-suave); }
+.modo-celular .dispositivo { -webkit-tap-highlight-color: transparent; cursor: pointer; }
+.modo-celular .dispositivo:active { background: var(--papel-2); }
+
+/* Folha de ações: sobe de baixo (celular) ou abre ao lado (computador) */
+.folha-acoes-fundo { position: fixed; inset: 0; z-index: 72; background: rgba(29, 36, 51, .28); opacity: 0; transition: opacity .2s; }
+.folha-acoes-fundo.aberta { opacity: 1; }
+.folha-acoes {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 73; max-height: 82vh; overflow: auto; -webkit-overflow-scrolling: touch;
+  background: #fff; border-radius: 20px 20px 0 0; box-shadow: 0 -12px 40px rgba(41, 34, 20, .22);
+  padding: .4rem 1rem calc(1rem + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform .26s cubic-bezier(.2, .7, .2, 1);
+  font-family: var(--sans);
+}
+.folha-acoes.aberta { transform: none; }
+.folha-alca { display: block; width: 40px; height: 4px; border-radius: 999px; background: var(--papel-4); margin: .2rem auto .6rem; }
+.folha-acoes.flutuante {
+  left: auto; right: auto; bottom: auto; width: min(380px, calc(100vw - 16px)); max-height: calc(100vh - 80px);
+  border-radius: var(--raio); border: 1px solid var(--papel-3); box-shadow: var(--sombra); padding: .8rem 1rem 1rem;
+  transform: scale(.97); opacity: 0; transition: transform .16s, opacity .16s;
+}
+.folha-acoes.flutuante.aberta { transform: none; opacity: 1; }
+@media (min-width: 761px) {
+  .folha-acoes:not(.flutuante) { left: 50%; right: auto; width: min(560px, 100vw); transform: translate(-50%, 100%); }
+  .folha-acoes:not(.flutuante).aberta { transform: translate(-50%, 0); }
+}
+
+.acoes-disp { display: flex; flex-direction: column; gap: .7rem; }
+.acoes-titulo { display: flex; align-items: center; gap: .4rem; }
+.acoes-titulo > div { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
+.acoes-titulo b { font-family: var(--serifa); font-size: 1.08rem; }
+.acoes-titulo span { color: var(--tinta-3); font-size: .78rem; }
+.acoes-previa { margin: 0; font-family: var(--serifa); color: var(--tinta-2); font-size: .94rem; line-height: 1.45; background: var(--papel); border-radius: 10px; padding: .6rem .75rem; }
+.acoes-rotulo { font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--tinta-3); font-weight: 700; }
+.acoes-cores { display: flex; gap: .55rem; flex-wrap: wrap; align-items: center; }
+.acoes-cores .cor { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--papel-4); background: var(--cor); cursor: pointer; padding: 0; transition: transform var(--transicao); }
+.acoes-cores .cor:active { transform: scale(.92); }
+.acoes-grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+.acao-grande {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; min-height: 64px; padding: .5rem .3rem;
+  border: 1px solid var(--papel-3); border-radius: 14px; background: #fff; color: var(--tinta); font-size: .8rem; font-weight: 600; cursor: pointer;
+  transition: background var(--transicao), border-color var(--transicao); text-align: center; line-height: 1.15;
+}
+.acao-grande:hover, .acao-grande:active { background: var(--papel-2); }
+.acao-grande.destaque { border-color: var(--acento); color: var(--acento); background: var(--acento-suave); }
+.acoes-existentes { display: flex; flex-direction: column; gap: .35rem; border-top: 1px solid var(--papel-3); padding-top: .6rem; }
+.acoes-marca { display: flex; align-items: center; gap: .55rem; }
+.acoes-marca-cor { width: 10px; align-self: stretch; border-radius: 4px; background: var(--cor); flex: none; }
+.acoes-marca-texto { flex: 1; font-family: var(--serifa); font-size: .9rem; color: var(--tinta-2); }
+.acoes-dica { margin: 0; color: var(--tinta-2); font-size: .88rem; min-height: 2.4em; }
+.escolha-palavras { display: flex; flex-wrap: wrap; gap: 4px; max-height: 42vh; overflow: auto; padding: .2rem 0; }
+.palavra {
+  min-height: 38px; padding: 0 .55rem; border-radius: 9px; border: 1px solid var(--papel-3); background: var(--papel);
+  font-family: var(--serifa); font-size: 1rem; color: var(--tinta); cursor: pointer; transition: background .12s, border-color .12s;
+}
+.palavra.no-intervalo { background: #fff59a; border-color: #e6d65f; }
+.palavra.ponta { border-color: var(--acento); box-shadow: 0 0 0 2px var(--acento-suave); }
+.escolha-acoes { border-top: 1px solid var(--papel-3); padding-top: .6rem; }
+.escolha-acoes.desligado { opacity: .4; pointer-events: none; }
+.acao-mini { height: 40px; min-width: 44px; padding: 0 .7rem; border-radius: 12px; border: 1px solid var(--papel-3); background: #fff; font-weight: 700; cursor: pointer; display: inline-grid; place-items: center; color: var(--tinta); }
+
+/* A barra da seleção, quando vira folha no celular */
+.popover-selecao.na-folha {
+  position: static; transform: none; animation: none; background: transparent; color: var(--tinta); box-shadow: none;
+  flex-wrap: wrap; justify-content: center; gap: .5rem; padding: .2rem 0 .3rem; border-radius: 0;
+}
+.popover-selecao.na-folha::after { display: none; }
+.popover-selecao.na-folha .cor { width: 40px; height: 40px; border-color: #fff; box-shadow: 0 0 0 1px var(--papel-4); }
+.popover-selecao.na-folha .acao { height: 42px; min-width: 46px; background: var(--papel-2); color: var(--tinta); border-radius: 12px; }
+.popover-selecao.na-folha .divisor { display: none; }
+.atalhos-dica { display: none; }
+.modo-computador .popover-selecao .atalhos-dica { display: inline; font-size: .72rem; opacity: .65; padding: 0 .5rem 0 .3rem; white-space: nowrap; }
+
+/* Marcação que a lei mudou por baixo */
+.marca-orfa {
+  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin: .1em 0 .6em 1.2em; padding: .35em .6em;
+  font-family: var(--sans); font-size: .74em; color: var(--tinta-2); border-left: 4px solid var(--cor); background: var(--papel-2); border-radius: 0 8px 8px 0;
+}
+.marca-orfa q { font-family: var(--serifa); font-style: italic; }
+.marca-orfa-rotulo { color: var(--tinta-3); }
+.marca-orfa .botao-icone { width: 30px; height: 30px; margin-left: auto; }
+
+/* Celular: o estojo só aparece no modo desenho, horizontal sobre a barra */
+.botao-desenhar {
+  display: inline-flex; align-items: center; gap: .35rem; height: 44px; padding: 0 .8rem; margin-right: .3rem;
+  border-radius: 999px; border: 1px solid var(--papel-3); background: #fff; color: var(--tinta); font-weight: 700; font-size: .84rem; cursor: pointer;
+}
+.botao-desenhar.ativo { background: var(--tinta); border-color: var(--tinta); color: var(--papel); }
+.modo-celular .estojo:not(.desenhando) { display: none; }
+.modo-celular .estojo {
+  top: auto; right: 8px; left: 8px; bottom: calc(var(--barra) + 10px); flex-direction: row; width: auto; justify-content: center;
+  overflow-x: auto; border-radius: 999px; flex-wrap: nowrap;
+}
+.modo-celular .estojo .separador { width: 1px; height: 30px; margin: 0 2px; }
+.modo-celular .estojo .larguras { flex-direction: row; }
+.modo-celular .estojo [data-ferramenta="nota"] { display: none; }
+.estojo .ferramenta.pronto { background: var(--acento); color: #fff; }
+.modo-celular .leitor { padding-bottom: calc(var(--barra) + 24px); }
+.modo-celular .folha-envelope { padding-right: .5rem; }
+
+/* Avisos de lei atualizada */
+.aviso-lei { display: flex; gap: .6rem; align-items: flex-start; margin: 1rem 0 0; padding: .75rem .9rem; border-radius: var(--raio); background: var(--ouro-suave); color: #6e5412; font-size: .88rem; }
+.aviso-lei svg { flex: none; margin-top: .1rem; }
+.lista-atualizacoes { display: flex; flex-direction: column; gap: .4rem; }
+.atualizacao { display: grid; grid-template-columns: auto 1fr auto; gap: .8rem; align-items: center; padding: .6rem .85rem; border-radius: var(--raio); background: #fff; border: 1px solid var(--papel-3); color: var(--tinta); }
+.atualizacao:hover { border-color: var(--papel-4); text-decoration: none; }
+.atualizacao .obra-sigla { font-size: .95rem; min-width: 4.5rem; }
+.atualizacao-texto { font-size: .86rem; color: var(--tinta-2); }
+.atualizacao-quando { font-size: .76rem; color: var(--tinta-3); white-space: nowrap; }
+.obra-atualizada { display: flex; gap: .4rem; align-items: center; margin: .45rem 0 0; font-size: .82rem; color: #8a6a17; font-weight: 600; }
+
+.so-estreito { display: none !important; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -529,4 +656,28 @@ canvas.tinta.borracha { cursor: cell; }
   .form .linha-dupla { grid-template-columns: 1fr; }
   .nota-margem { margin-left: .4em; }
   .leitor { padding-bottom: calc(var(--barra) + 80px); }
+}
+
+/* Celular e janelas estreitas — DEPOIS de todo o resto (regra de tela pequena
+   no meio do arquivo perde por ordem). */
+@media (max-width: 760px) {
+  .so-estreito { display: inline-flex !important; }
+  #camada-modal { align-items: end; padding: 0; }
+  .modal, .modal.larga { width: 100%; max-height: 90vh; border-radius: 20px 20px 0 0; padding-bottom: env(safe-area-inset-bottom); }
+  .modal-rodape { flex-wrap: wrap; }
+  .acoes-grade { grid-template-columns: repeat(3, 1fr); }
+  .atualizacao { grid-template-columns: auto 1fr; }
+  .atualizacao-quando { grid-column: 2; }
+  .obra-cabecalho { flex-direction: column; gap: .6rem; }
+  .obra-cabecalho h1 { font-size: 1.45rem; }
+  .tela-cabecalho h1 { font-size: 1.55rem; }
+  .barra-leitura { gap: .25rem; padding: 0 .4rem; }
+  .voz-controle .botao-icone { width: 38px; height: 38px; }
+  .voz-progresso { display: none; }
+}
+@media (max-width: 420px) {
+  .marca span { display: none; }
+  .botao-desenhar span { display: none; }
+  .botao-desenhar { padding: 0 .7rem; }
+  .numeros { grid-template-columns: repeat(2, 1fr); }
 }

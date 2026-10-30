@@ -7,7 +7,8 @@
    escrita muda o espelho local NA HORA e entra na fila de envio. A tela
    nunca espera o servidor para mostrar o que o estudante acabou de fazer.
    ========================================================================== */
-import { el, preencher, icone, avisar, abrirModal, fecharModal, confirmar, paletaDeCores, CORES, ehClara, rotuloFalado, fmtRelativo, debounce } from "./ui.js";
+import { el, preencher, icone, avisar, abrirModal, fecharModal, confirmar, paletaDeCores, CORES, ehClara, rotuloFalado, fmtRelativo, debounce, abrirFolha, fecharFolha } from "./ui.js";
+import { modo, ferramentaInicial, lembrarFerramenta } from "./aparelho.js";
 import { Tinta } from "./tinta.js";
 import * as voz from "./voz.js";
 import * as armazem from "./armazem.js";
@@ -29,6 +30,9 @@ export function limparLeitor() {
   document.removeEventListener("selectionchange", estado.aoSelecionar);
   document.removeEventListener("pointerup", estado.aoSoltar);
   document.removeEventListener("click", estado.aoClicarFora, true);
+  document.removeEventListener("keydown", estado.aoTeclar);
+  document.removeEventListener("pointerdown", estado.aoTocar, true);
+  fecharFolha();
   window.removeEventListener("scroll", estado.aoRolar);
   estado.cancelarVoz?.();
   document.getElementById("conteudo").classList.remove("leitura");
@@ -60,7 +64,7 @@ export async function telaLeitor(container, partes, query) {
   container.classList.add("leitura");
   preencher(container, el("div", { classe: "vazio" }, "Abrindo a página…"));
 
-  const [pagina, anot] = await Promise.all([armazem.lerPagina(paginaId), armazem.lerAnotacoes(paginaId)]);
+  const [pagina, anot] = await Promise.all([armazem.lerPagina(paginaId, metaDaObra(obraDaPagina(paginaId))?.versao), armazem.lerAnotacoes(paginaId)]);
   estado = { pagina, marcacoes: anot.marcacoes ?? [], notas: anot.notas ?? [], leitura: anot.leitura ?? null };
 
   /* cabeçalho do topo */
@@ -101,14 +105,17 @@ export async function telaLeitor(container, partes, query) {
   estado.tinta.cor = prefs().cor_caneta;
   estado.tinta.corMarcador = prefs().cor_marcador;
   estado.tinta.largura = Number(prefs().largura_caneta) || 2.2;
-  estado.tinta.definirDedo(prefs().desenhar_com_dedo === "1");
+  estado.tinta.definirDedo(modo() === "celular" ? false : prefs().desenhar_com_dedo === "1");
   estado.tinta.carregar(anot.tracos ?? []);
 
   montarEstojo();
   montarBarra();
   ligarSelecao();
   ligarNotasPorToque();
-  definirFerramenta(prefs().ferramenta && prefs().ferramenta !== "selecao" ? prefs().ferramenta : "mao");
+  ligarAcoesPorToque();
+  ligarAtalhos();
+  const inicial = ferramentaInicial(prefs().ferramenta);
+  definirFerramenta(inicial && inicial !== "selecao" ? inicial : "mao");
 
   /* leitura: registra a visita e acompanha a posição (espelho + fila) */
   estado.leitura = { visitas: (estado.leitura?.visitas ?? 0) + 1, posicao: 0, ultima_em: new Date().toISOString() };
@@ -155,12 +162,16 @@ function renderArtigo(a) {
 
 function renderBloco(a, d) {
   const disp = el("div", { classe: `dispositivo tipo-${d.tipo}`, "data-id": d.id, "data-artigo": a.id },
+    el("button", { classe: "disp-mais", type: "button", title: "Marcar, anotar, ouvir…", "aria-label": "Ações deste trecho", aoClicar: (e) => { e.stopPropagation(); abrirAcoes(disp, e.currentTarget); } }, icone("tres", 18)),
     d.rotulo ? el("span", { classe: "disp-rotulo" }, d.rotulo) : null,
     el("span", { classe: "disp-texto" }),
     ...(d.notas ?? []).map((n) => el("span", { classe: "disp-nota-editor" }, n)),
   );
   renderTexto(disp, d);
   const bloco = el("div", { classe: "bloco" }, disp);
+  /* marcação feita sobre uma redação que a lei mudou e cujo trecho sumiu:
+     não some em silêncio — fica visível, com o texto que foi marcado */
+  for (const m of marcacoesDe(d.id).filter((x) => !posicionarMarca(x, d.texto))) bloco.append(renderOrfa(m, d));
   for (const n of estado.notas.filter((x) => x.dispositivo_id === d.id)) bloco.append(renderNota(n));
   return bloco;
 }
@@ -170,20 +181,20 @@ function marcacoesDe(id) { return estado.marcacoes.filter((m) => m.dispositivo_i
 /* O texto do dispositivo com as marcações aplicadas por intervalo. */
 function renderTexto(disp, d) {
   const alvo = disp.querySelector(".disp-texto");
-  const marcas = marcacoesDe(d.id);
   const texto = d.texto;
+  const marcas = marcacoesDe(d.id).map((m) => ({ m, pos: posicionarMarca(m, texto) })).filter((x) => x.pos);
   if (!marcas.length) { alvo.replaceChildren(document.createTextNode(texto)); return; }
   const cortes = new Set([0, texto.length]);
-  for (const m of marcas) { cortes.add(Math.max(0, Math.min(texto.length, m.inicio))); cortes.add(Math.max(0, Math.min(texto.length, m.fim))); }
+  for (const { pos } of marcas) { cortes.add(pos.inicio); cortes.add(pos.fim); }
   const pontos = [...cortes].sort((x, y) => x - y);
   const nos = [];
   for (let i = 0; i + 1 < pontos.length; i++) {
     const de = pontos[i], ate = pontos[i + 1];
     if (ate <= de) continue;
-    const cobre = marcas.filter((m) => m.inicio <= de && m.fim >= ate);
+    const cobre = marcas.filter(({ pos }) => pos.inicio <= de && pos.fim >= ate);
     const pedaco = texto.slice(de, ate);
     if (!cobre.length) { nos.push(document.createTextNode(pedaco)); continue; }
-    const m = cobre[cobre.length - 1];
+    const m = cobre[cobre.length - 1].m;
     const escura = m.estilo === "marca" && !ehClara(m.cor);
     nos.push(el("mark", {
       classe: `marca estilo-${m.estilo} ${escura ? "escura" : ""} ${m.recente ? "recente" : ""}`, "data-marca-id": m.id, style: `--cor: ${m.cor}`,
@@ -200,7 +211,17 @@ function dispositivoPorId(id) {
 function referenciaDe(id) {
   const r = dispositivoPorId(id);
   if (!r) return "";
-  return r.dispositivo.rotulo ? `${r.artigo.rotulo}, ${r.dispositivo.rotulo}` : r.artigo.rotulo;
+  if (!r.dispositivo.rotulo) return r.artigo.rotulo;
+  /* "Art. 121, § 2º-B, II" — o mesmo critério de referencia() no servidor */
+  const NIVEL = { paragrafo: 1, inciso: 2, pena: 2, alinea: 3, item: 4 };
+  const lista = r.artigo.dispositivos;
+  const partes = [r.dispositivo.rotulo];
+  let nivel = NIVEL[r.dispositivo.tipo] ?? 2;
+  for (let j = lista.indexOf(r.dispositivo) - 1; j >= 0 && nivel > 1; j--) {
+    const n = NIVEL[lista[j].tipo];
+    if (n !== undefined && n < nivel && lista[j].tipo !== "pena" && lista[j].rotulo) { partes.unshift(lista[j].rotulo); nivel = n; }
+  }
+  return `${r.artigo.rotulo}, ${partes.join(", ")}`;
 }
 
 function renderNota(n) {
@@ -247,6 +268,7 @@ function montarEstojo() {
   estojo.append(larguras);
   estojo.append(el("div", { classe: "separador" }));
   estojo.append(el("button", { classe: "ferramenta pequena", type: "button", title: "Desfazer último traço", "aria-label": "Desfazer", aoClicar: () => { if (!estado.tinta.desfazerUltimo()) avisar("Nada para desfazer nesta sessão."); } }, icone("desfazer", 20)));
+  if (modo() === "celular") estojo.append(el("button", { classe: "ferramenta pronto", type: "button", title: "Pronto: voltar a ler", "aria-label": "Pronto", aoClicar: () => definirFerramenta("mao") }, icone("check", 22)));
   estojo.append(el("button", { classe: "ferramenta pequena", type: "button", title: "Apagar toda a tinta desta página", "aria-label": "Limpar tinta da página", aoClicar: () => confirmar("Apagar TODOS os traços de caneta e marca-texto desta página? As marcações de trecho e as notas ficam.", async () => {
     estado.tinta.limparTudo();
     persistir();
@@ -276,7 +298,17 @@ function definirFerramenta(f) {
   if (f !== "nota") for (const d of estado.folha.querySelectorAll(".dispositivo.alvo-nota")) d.classList.remove("alvo-nota");
   fecharPopover();
   atualizarEstojo();
-  void salvarPrefs({ ferramenta: f });
+  lembrarFerramenta(f);
+  if (modo() === "tablet") void salvarPrefs({ ferramenta: f });
+  if (modo() === "celular") {
+    /* no celular o dedo só desenha DENTRO do modo desenho; fora dele, rola */
+    estado.tinta.definirDedo(f !== "mao");
+    estado.estojo?.classList.toggle("desenhando", f !== "mao");
+    if (estado.botaoDesenhar) {
+      estado.botaoDesenhar.classList.toggle("ativo", f !== "mao");
+      preencher(estado.botaoDesenhar, icone(f !== "mao" ? "check" : "caneta", 20), el("span", {}, f !== "mao" ? "Pronto" : "Desenhar"));
+    }
+  }
 }
 function definirLargura(v) {
   estado.tinta.largura = v;
@@ -324,9 +356,15 @@ function posicionarJunto(painel, ancora) {
 /* ============================ seleção de texto ============================ */
 function ligarSelecao() {
   estado.aoSelecionar = debounce(() => { if (estado && estado.tinta.ferramenta === "mao") mostrarPopoverSelecao(); }, 260);
-  estado.aoSoltar = () => { if (estado && estado.tinta.ferramenta === "mao") setTimeout(mostrarPopoverSelecao, 30); };
+  estado.aoSoltar = (e) => {
+    if (!estado || estado.tinta.ferramenta !== "mao") return;
+    if (estado.popover && estado.popover.contains(e.target)) return;      // tocar no botão da barra não é "soltar a seleção"
+    setTimeout(mostrarPopoverSelecao, 30);
+  };
+  estado.aoTocar = (e) => { if (estado?.popover && estado.popover.contains(e.target)) estado.tocouPopoverEm = Date.now(); };
   document.addEventListener("selectionchange", estado.aoSelecionar);
   document.addEventListener("pointerup", estado.aoSoltar);
+  document.addEventListener("pointerdown", estado.aoTocar, true);
 }
 
 function intervalosDaSelecao() {
@@ -346,6 +384,13 @@ function intervalosDaSelecao() {
     const texto = alvo.textContent;
     while (inicio < fim && /\s/.test(texto[inicio])) inicio += 1;
     while (fim > inicio && /\s/.test(texto[fim - 1])) fim -= 1;
+    /* mouse e dedo erram a borda da palavra ("adrasto … irmã"): no celular e no
+       computador a seleção cresce até a palavra inteira; a caneta fica exata */
+    if (modo() !== "tablet" && fim > inicio) {
+      const letra = /[\p{L}\p{N}ºª°]/u;
+      while (inicio > 0 && letra.test(texto[inicio - 1]) && letra.test(texto[inicio])) inicio -= 1;
+      while (fim < texto.length && letra.test(texto[fim]) && letra.test(texto[fim - 1])) fim += 1;
+    }
     if (fim > inicio) saida.push({ dispositivo_id: disp.dataset.id, inicio, fim, trecho: texto.slice(inicio, fim), elemento: disp });
   }
   return saida;
@@ -363,12 +408,20 @@ function criarMarcacao(i, estilo, cor) {
 
 function mostrarPopoverSelecao() {
   if (!estado) return;
-  const intervalos = intervalosDaSelecao();
-  if (!intervalos.length) { if (estado.popover?.dataset.tipo === "selecao") fecharPopover(); return; }
+  const achados = intervalosDaSelecao();
+  if (!achados.length) {
+    /* o toque num botão da barra desfaz a seleção do celular antes do clique */
+    if (estado.popover?.dataset.tipo === "selecao" && Date.now() - (estado.tocouPopoverEm ?? 0) > 600) fecharPopover();
+    return;
+  }
+  estado.selAtual = achados;
+  if (modo() === "celular" && estado.popover?.dataset.tipo === "selecao") return;      // a folha já está aberta: só acompanha a seleção
   fecharPopover();
   const sel = window.getSelection();
   const rect = sel.getRangeAt(0).getBoundingClientRect();
+  const intervalosAgora = () => estado.selAtual ?? achados;
   const criar = (estilo, cor) => () => {
+    const intervalos = intervalosAgora();
     for (const i of intervalos) {
       criarMarcacao(i, estilo, cor);
       renderTexto(i.elemento, dispositivoPorId(i.dispositivo_id).dispositivo);
@@ -378,21 +431,33 @@ function mostrarPopoverSelecao() {
     avisar(estilo === "marca" ? "Trecho marcado." : estilo === "sublinhado" ? "Trecho sublinhado." : "Trecho riscado.");
   };
   const pop = el("div", { classe: "popover-selecao", "data-tipo": "selecao", role: "toolbar" },
-    ...CORES.pasteis.map((c) => el("button", { classe: "cor", type: "button", title: `Marcar em ${c.nome.toLowerCase()}`, style: `--cor: ${c.hex}`, aoClicar: criar("marca", c.hex) })),
+    ...CORES.pasteis.map((c, n) => el("button", { classe: "cor", type: "button", "data-atalho": String(n + 1), title: `Marcar em ${c.nome.toLowerCase()} (${n + 1})`, style: `--cor: ${c.hex}`, aoClicar: criar("marca", c.hex) })),
     el("span", { classe: "divisor" }),
-    el("button", { classe: "acao", type: "button", title: "Sublinhar com a cor da caneta", aoClicar: criar("sublinhado", estado.tinta.cor) }, "S̲"),
-    el("button", { classe: "acao", type: "button", title: "Riscar com a cor da caneta", aoClicar: criar("riscado", estado.tinta.cor) }, "R̶"),
+    el("button", { classe: "acao", type: "button", "data-atalho": "s", title: "Sublinhar com a cor da caneta (S)", aoClicar: criar("sublinhado", estado.tinta.cor) }, "S̲"),
+    el("button", { classe: "acao", type: "button", "data-atalho": "r", title: "Riscar com a cor da caneta (R)", aoClicar: criar("riscado", estado.tinta.cor) }, "R̶"),
     el("span", { classe: "divisor" }),
-    el("button", { classe: "acao icone-so", type: "button", title: "Ouvir o trecho", aoClicar: () => {
-      voz.falar(intervalos.map((i) => ({ texto: i.trecho, elemento: i.elemento })));
+    el("button", { classe: "acao icone-so", type: "button", "data-atalho": "o", title: "Ouvir o trecho (O)", aoClicar: () => {
+      voz.falar(intervalosAgora().map((i) => ({ texto: i.trecho, elemento: i.elemento })));
       fecharPopover();
     } }, icone("ouvir", 18)),
-    el("button", { classe: "acao icone-so", type: "button", title: "Escrever uma nota sobre o trecho", aoClicar: () => { const i = intervalos[0]; fecharPopover(); sel.removeAllRanges(); modalNota(i.dispositivo_id, null, i.trecho); } }, icone("nota", 18)),
+    el("button", { classe: "acao icone-so", type: "button", "data-atalho": "n", title: "Escrever uma nota sobre o trecho (N)", aoClicar: () => { const i = intervalosAgora()[0]; fecharPopover(); window.getSelection()?.removeAllRanges(); modalNota(i.dispositivo_id, null, i.trecho); } }, icone("nota", 18)),
+    el("span", { classe: "atalhos-dica" }, "1–6 cor · S · R · N · O"),
   );
   posicionarPopover(pop, rect);
 }
 
 function posicionarPopover(pop, rect) {
+  if (modo() === "celular") {
+    /* no celular a barra sobe de baixo: longe dos dedos que ajustam a seleção
+       e do menu do próprio Android, que aparece em cima do texto */
+    pop.classList.add("na-folha");
+    estado.popover = pop;
+    estado.fecharPopoverFolha = abrirFolha(pop, {
+      semFundo: pop.dataset.tipo === "selecao",
+      aoFechar: () => { if (estado && estado.popover === pop) { estado.popover = null; estado.fecharPopoverFolha = null; } },
+    });
+    return;
+  }
   const lr = estado.leitor.getBoundingClientRect();
   estado.leitor.append(pop);
   const largura = pop.offsetWidth, altura = pop.offsetHeight;
@@ -404,6 +469,13 @@ function posicionarPopover(pop, rect) {
 }
 function fecharPopover() {
   if (!estado?.popover) return;
+  if (estado.fecharPopoverFolha) {
+    const fechar = estado.fecharPopoverFolha;
+    estado.fecharPopoverFolha = null;
+    estado.popover = null;
+    fechar();
+    return;
+  }
   estado.popover.remove();
   estado.popover = null;
 }
@@ -439,8 +511,180 @@ function abrirPopoverMarcacao(m, elMark) {
     } }, icone("lixo", 18)),
   );
   posicionarPopover(pop, rect);
+  if (modo() === "celular") return;                 // a folha fecha sozinha (fundo, Esc)
   const fora = (e) => { if (!pop.contains(e.target)) { fecharPopover(); document.removeEventListener("pointerdown", fora, true); } };
   setTimeout(() => document.addEventListener("pointerdown", fora, true), 0);
+}
+
+/* ============================ ações do trecho (celular e computador) ============================
+   Celular: um toque no texto abre a folha. Computador: o botão "⋯" ao lado
+   do dispositivo. O tablet segue com a caneta e a seleção de sempre. */
+function ligarAcoesPorToque() {
+  estado.folha.addEventListener("pointerdown", () => { if (estado) estado.tinhaSelecao = !(window.getSelection()?.isCollapsed ?? true); }, true);
+  estado.folha.addEventListener("click", (e) => {
+    if (!estado || modo() !== "celular" || estado.tinta.ferramenta !== "mao") return;
+    if (estado.tinhaSelecao) return;                             // o toque só desfez uma seleção
+    if (e.target.closest("mark, button, a, .disp-nota-editor")) return;
+    const disp = e.target.closest(".dispositivo");
+    if (disp) abrirAcoes(disp);
+  });
+}
+
+/* Atalhos do computador: com um trecho selecionado, 1–6 marca na cor,
+   S sublinha, R risca, N abre a nota, O lê em voz alta, Esc desiste. */
+function ligarAtalhos() {
+  estado.aoTeclar = (e) => {
+    if (!estado || modo() !== "computador" || e.ctrlKey || e.metaKey || e.altKey) return;
+    const ativo = document.activeElement;
+    if (ativo && (/^(INPUT|TEXTAREA|SELECT)$/.test(ativo.tagName) || ativo.isContentEditable)) return;
+    if (document.getElementById("camada-modal")?.classList.contains("aberta")) return;
+    const pop = estado.popover;
+    if (!pop || pop.dataset.tipo !== "selecao") return;
+    if (e.key === "Escape") { window.getSelection()?.removeAllRanges(); fecharPopover(); return; }
+    const alvo = pop.querySelector(`[data-atalho="${CSS.escape(e.key.toLowerCase())}"]`);
+    if (alvo) { e.preventDefault(); alvo.click(); }
+  };
+  document.addEventListener("keydown", estado.aoTeclar);
+}
+
+function removerMarcacao(m) {
+  estado.marcacoes = estado.marcacoes.filter((x) => x.id !== m.id);
+  persistir();
+  void armazem.mutar({ metodo: "DELETE", caminho: `/api/v1/marcacoes/${m.id}` });
+  const disp = estado.folha.querySelector(`[data-id="${CSS.escape(m.dispositivo_id)}"]`);
+  const r = dispositivoPorId(m.dispositivo_id);
+  if (disp && r) renderTexto(disp, r.dispositivo);
+  estado.folha.querySelector(`[data-orfa-id="${CSS.escape(m.id)}"]`)?.remove();
+}
+
+async function copiarTexto(texto) {
+  try { await navigator.clipboard.writeText(texto); return true; }
+  catch {
+    const area = el("textarea", { readonly: true }, texto);
+    document.body.append(area);
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch { ok = false; }
+    area.remove();
+    return ok;
+  }
+}
+
+function abrirAcoes(disp, ancora = null) {
+  if (!estado) return;
+  fecharPopover();
+  const r = dispositivoPorId(disp.dataset.id);
+  if (!r) return;
+  const { artigo, dispositivo: d } = r;
+  const ref = referenciaDe(d.id);
+  const sigla = metaDaObra(obraDaPagina(estado.pagina.id))?.sigla ?? "";
+  const corpo = el("div", { classe: "acoes-disp" });
+  disp.classList.add("selecionado");
+  let fechar = () => {};
+  const inteiro = { dispositivo_id: d.id, inicio: 0, fim: d.texto.length, trecho: d.texto, elemento: disp };
+  const marcarTudo = (estilo, cor) => {
+    if (!d.texto) return;
+    criarMarcacao(inteiro, estilo, cor);
+    renderTexto(disp, d);
+    fechar();
+    avisar(estilo === "marca" ? "Marcado." : estilo === "sublinhado" ? "Sublinhado." : "Riscado.");
+  };
+  const botao = (rotulo, nomeIcone, acao, extra = "") => el("button", { type: "button", classe: `acao-grande ${extra}`, aoClicar: acao }, icone(nomeIcone, 20), el("span", {}, rotulo));
+  const cabecalho = (voltar) => el("div", { classe: "acoes-titulo" },
+    voltar ? el("button", { type: "button", classe: "botao-icone", title: "Voltar", "aria-label": "Voltar", aoClicar: voltar }, icone("anterior", 18)) : null,
+    el("div", {}, el("b", {}, ref), el("span", {}, sigla)),
+    el("button", { type: "button", classe: "botao-icone", title: "Fechar", "aria-label": "Fechar", aoClicar: () => fechar() }, icone("x", 18)));
+
+  const principal = () => {
+    const existentes = marcacoesDe(d.id);
+    preencher(corpo,
+      cabecalho(null),
+      el("p", { classe: "acoes-previa" }, d.texto.length > 160 ? d.texto.slice(0, 160) + "…" : d.texto),
+      el("span", { classe: "acoes-rotulo" }, "Marcar o texto inteiro"),
+      el("div", { classe: "acoes-cores" }, ...CORES.pasteis.map((c) => el("button", { type: "button", classe: "cor", title: `Marcar em ${c.nome.toLowerCase()}`, "aria-label": `Marcar em ${c.nome.toLowerCase()}`, style: `--cor: ${c.hex}`, aoClicar: () => marcarTudo("marca", c.hex) }))),
+      el("div", { classe: "acoes-grade" },
+        botao("Marcar só uma parte", "marcador", () => escolherParte(), "destaque"),
+        botao("Sublinhar", "caneta", () => marcarTudo("sublinhado", estado.tinta.cor)),
+        botao("Riscar", "x", () => marcarTudo("riscado", estado.tinta.cor)),
+        botao("Nota", "nota", () => { fechar(); modalNota(d.id); }),
+        botao("Ouvir", "ouvir", () => { fechar(); voz.falar([{ texto: `${d.tipo === "caput" ? rotuloFalado(artigo) : rotuloFalado(artigo, d)}. ${d.texto}`, elemento: disp }]); }),
+        botao("Copiar", "copiar", async () => {
+          const ok = await copiarTexto(`${ref}${sigla ? " (" + sigla + ")" : ""} — ${d.rotulo ? d.rotulo + " " : ""}${d.texto}`);
+          fechar();
+          avisar(ok ? "Texto copiado." : "Não consegui copiar neste navegador.", ok ? "ok" : "erro");
+        }),
+      ),
+      existentes.length ? el("div", { classe: "acoes-existentes" },
+        el("span", { classe: "acoes-rotulo" }, "Já marcado aqui"),
+        ...existentes.map((m) => el("div", { classe: "acoes-marca", style: `--cor: ${m.cor}` },
+          el("span", { classe: "acoes-marca-cor" }),
+          el("span", { classe: "acoes-marca-texto" }, `“${m.trecho.length > 70 ? m.trecho.slice(0, 70) + "…" : m.trecho}”`),
+          el("button", { type: "button", classe: "botao-icone", title: "Remover esta marcação", "aria-label": "Remover marcação", aoClicar: () => { removerMarcacao(m); principal(); avisar("Marcação removida."); } }, icone("lixo", 16))))) : null,
+    );
+  };
+
+  /* Marcar só uma parte: as palavras viram botões grandes. Toque na primeira
+     e na última — no celular é bem mais fácil que arrastar as alças da seleção. */
+  const escolherParte = () => {
+    const tokens = [...d.texto.matchAll(/\S+/g)].map((x) => ({ ini: x.index, fim: x.index + x[0].length, t: x[0] }));
+    let a = null, b = null;
+    const dica = el("p", { classe: "acoes-dica" });
+    const acoes = el("div", { classe: "acoes-cores escolha-acoes" });
+    const intervalo = () => {
+      const i0 = Math.min(a, b ?? a), i1 = Math.max(a, b ?? a);
+      return { dispositivo_id: d.id, inicio: tokens[i0].ini, fim: tokens[i1].fim, trecho: d.texto.slice(tokens[i0].ini, tokens[i1].fim), elemento: disp };
+    };
+    const aplicar = (estilo, cor) => () => {
+      if (a === null) return;
+      criarMarcacao(intervalo(), estilo, cor);
+      renderTexto(disp, d);
+      fechar();
+      avisar("Trecho marcado.");
+    };
+    const palavras = tokens.map((tk, i) => el("button", { type: "button", classe: "palavra", aoClicar: () => {
+      if (a === null || b !== null) { a = i; b = null; } else b = i;
+      atualizar();
+    } }, tk.t));
+    function atualizar() {
+      const i0 = a === null ? -1 : Math.min(a, b ?? a), i1 = a === null ? -1 : Math.max(a, b ?? a);
+      palavras.forEach((p, i) => { p.classList.toggle("no-intervalo", i >= i0 && i <= i1); p.classList.toggle("ponta", i === a || i === b); });
+      dica.textContent = a === null ? "Toque na primeira palavra do trecho." : b === null ? "Agora toque na última palavra (ou já escolha a cor para marcar só esta)." : `“${intervalo().trecho}”`;
+      acoes.classList.toggle("desligado", a === null);
+    }
+    preencher(acoes,
+      ...CORES.pasteis.map((c) => el("button", { type: "button", classe: "cor", title: `Marcar em ${c.nome.toLowerCase()}`, "aria-label": `Marcar em ${c.nome.toLowerCase()}`, style: `--cor: ${c.hex}`, aoClicar: aplicar("marca", c.hex) })),
+      el("button", { type: "button", classe: "acao-mini", title: "Sublinhar", aoClicar: aplicar("sublinhado", estado.tinta.cor) }, "S̲"),
+      el("button", { type: "button", classe: "acao-mini", title: "Riscar", aoClicar: aplicar("riscado", estado.tinta.cor) }, "R̶"),
+      el("button", { type: "button", classe: "acao-mini", title: "Nota sobre o trecho", aoClicar: () => { if (a === null) return; const t = intervalo().trecho; fechar(); modalNota(d.id, null, t); } }, icone("nota", 18)),
+    );
+    preencher(corpo, cabecalho(principal), dica, el("div", { classe: "escolha-palavras" }, ...palavras), acoes);
+    atualizar();
+  };
+
+  principal();
+  fechar = abrirFolha(corpo, { ancora, classe: "folha-trecho", aoFechar: () => disp.classList.remove("selecionado") });
+}
+
+/* ============================ texto que mudou ============================
+   A marcação guarda o intervalo E o trecho. Se a lei mudou e o intervalo já
+   não bate, procura o mesmo trecho no texto novo (o mais perto de onde
+   estava); se ele não existe mais, a marcação vira "órfã" e aparece à parte. */
+function posicionarMarca(m, texto) {
+  if (m.inicio >= 0 && m.fim <= texto.length && m.fim > m.inicio && (!m.trecho || texto.slice(m.inicio, m.fim) === m.trecho)) return { inicio: m.inicio, fim: m.fim };
+  if (!m.trecho) return null;
+  let melhor = -1, distancia = Infinity;
+  for (let i = texto.indexOf(m.trecho); i !== -1; i = texto.indexOf(m.trecho, i + 1)) {
+    const dd = Math.abs(i - m.inicio);
+    if (dd < distancia) { distancia = dd; melhor = i; }
+  }
+  return melhor >= 0 ? { inicio: melhor, fim: melhor + m.trecho.length } : null;
+}
+
+function renderOrfa(m) {
+  return el("div", { classe: "marca-orfa", "data-orfa-id": m.id, style: `--cor: ${m.cor}` },
+    el("span", { classe: "marca-orfa-rotulo" }, "Marcado numa redação anterior desta lei:"),
+    el("q", {}, m.trecho),
+    el("button", { type: "button", classe: "botao-icone", title: "Remover esta marcação", "aria-label": "Remover marcação", aoClicar: () => { removerMarcacao(m); avisar("Marcação removida."); } }, icone("lixo", 14)));
 }
 
 /* ============================ notas ============================ */
@@ -555,8 +799,13 @@ function montarBarra() {
   const progresso = el("span", { classe: "voz-progresso" }, "");
   const botaoMenu = el("button", { classe: "botao-icone", type: "button", title: "O que ouvir", "aria-label": "Opções de leitura", aoClicar: (e) => abrirMenuOuvir(e.currentTarget) }, icone("ouvir", 20));
   const controle = el("div", { classe: "voz-controle" }, botaoMenu, botaoTocar, botaoParar, progresso);
+  /* celular: desenhar com o dedo é um modo à parte (senão o dedo não rolaria a página) */
+  const botaoDesenhar = modo() === "celular"
+    ? el("button", { classe: "botao-desenhar", type: "button", title: "Desenhar com o dedo", aoClicar: () => definirFerramenta(estado.tinta.ferramenta === "mao" ? "caneta" : "mao") }, icone("caneta", 20), el("span", {}, "Desenhar"))
+    : null;
+  estado.botaoDesenhar = botaoDesenhar;
 
-  const barra = el("div", { classe: "barra-leitura" }, anterior, el("div", { classe: "centro" }, controle), proxima);
+  const barra = el("div", { classe: "barra-leitura" }, anterior, el("div", { classe: "centro" }, botaoDesenhar, controle), proxima);
   document.body.append(barra);
   estado.barra = barra;
 

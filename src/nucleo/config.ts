@@ -35,6 +35,13 @@ export const config = {
     url: process.env["DATABASE_URL"] ?? "",
   },
   conteudo: resolve(RAIZ, process.env["CARTA_CONTEUDO"] ?? "./conteudo/cf88.json"),
+  /* Leis atualizadas pelo serviço diário (fora do git, gravável pelo serviço).
+     Vazio desliga: os testes só enxergam o que está no repositório. */
+  leis: ((): string => {
+    const v = process.env["CARTA_LEIS"] ?? (ambiente === "teste" ? "" : "./dados/leis");
+    return v ? resolve(RAIZ, v) : "";
+  })(),
+  leisCache: resolve(RAIZ, process.env["CARTA_LEIS_CACHE"] ?? "./dados/leis-cache"),
   segredoSessao: process.env["CARTA_SEGREDO_SESSAO"] ?? "",
   proxiesConfiaveis: Number(process.env["PROXIES_CONFIAVEIS"] ?? 0),
 };

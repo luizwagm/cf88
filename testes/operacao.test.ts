@@ -108,6 +108,24 @@ describe("vhost gerado pelo criar-site.sh (ensaio)", { skip: temBash ? false : "
   });
 });
 
+describe("atualização diária das leis (systemd)", () => {
+  const leis = ler("operacao/lacarta-leis.service");
+  const timer = ler("operacao/lacarta-leis.timer");
+  it("roda o atualizador como deploy, no Node 24, gravando só em dados/", () => {
+    assert.match(leis, /^User=deploy$/m);
+    assert.match(leis, /^ExecStart=\/opt\/node24\/bin\/node ferramentas\/leis\/atualizar\.ts$/m);
+    assert.match(leis, /^ReadWritePaths=-\/var\/www\/projetos\/LA-Carta\/dados$/m);
+    assert.match(leis, /^ExecStartPre=\+\/bin\/mkdir -p \/var\/www\/projetos\/LA-Carta\/dados$/m);
+    assert.match(leis, /^ProtectSystem=strict$/m);
+    assert.doesNotMatch(leis, /^\s*MemoryDenyWriteExecute\s*=\s*(true|yes|1)/im);
+    assert.doesNotMatch(leis, /PrivateNetwork/i, "o atualizador precisa de rede para falar com o Planalto");
+  });
+  it("timer diário, depois do backup das 04:00, recupera execução perdida", () => {
+    assert.match(timer, /^OnCalendar=\*-\*-\* 05:15:00$/m);
+    assert.match(timer, /^Persistent=true$/m);
+  });
+});
+
 describe("unidades do systemd", () => {
   const unit = ler("operacao/lacarta.service");
   const backup = ler("operacao/lacarta-backup.service");
@@ -138,7 +156,7 @@ describe("unidades do systemd", () => {
 
 describe("scripts de operação", () => {
   it("nenhum .sh/.service/.timer com CRLF", () => {
-    for (const f of ["criar-site.sh", "deploy.sh", "verificar.sh", "operacao/instalar-node24.sh", "operacao/lacarta.service", "operacao/lacarta-backup.service", "operacao/lacarta-backup.timer"]) {
+    for (const f of ["criar-site.sh", "deploy.sh", "verificar.sh", "operacao/instalar-node24.sh", "operacao/lacarta.service", "operacao/lacarta-backup.service", "operacao/lacarta-backup.timer", "operacao/lacarta-leis.service", "operacao/lacarta-leis.timer"]) {
       assert.doesNotMatch(ler(f), /\r/, f);
     }
   });

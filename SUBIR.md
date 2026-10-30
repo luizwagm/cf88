@@ -57,13 +57,24 @@ instalação (o `deploy.sh` roda para manter o lock honesto). Se rodar algo
 com `sudo` sem `-u deploy`, devolva a posse: `sudo chown -R deploy:deploy
 /var/www/projetos/LA-Carta`.
 
-## 3. O serviço e a cópia diária
+## 3. O serviço, a cópia diária e a atualização das leis
 
 ```bash
-sudo cp operacao/lacarta.service operacao/lacarta-backup.* /etc/systemd/system/
+sudo cp operacao/lacarta.service operacao/lacarta-backup.* operacao/lacarta-leis.* /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now lacarta lacarta-backup.timer
+sudo systemctl enable --now lacarta lacarta-backup.timer lacarta-leis.timer
 ```
+
+A **atualização das leis** roda todo dia às 05:15: confere as 83 leis no Planalto (só baixa
+o que mudou), valida cada uma e grava em `dados/leis/`. O serviço do site percebe o índice
+novo e recarrega sozinho em até 1 minuto — sem reiniciar e sem tocar o git (o `deploy.sh`
+continua aceitando entrega). Para rodar na hora e ver o resultado:
+
+```bash
+sudo systemctl start lacarta-leis.service && sudo journalctl -u lacarta-leis -n 40 --no-pager
+```
+
+A primeira execução baixa tudo (uns 40 MB, cerca de 3 minutos); as seguintes, só o que mudou.
 
 A unidade cria `dados/` e `backups/` sozinha em `ExecStartPre=+` (fora do
 sandbox), porque com `ProtectSystem=strict` o processo não consegue criá-las.
@@ -140,3 +151,17 @@ Abra `https://cf88.projetos.luizaugust.me` no Chrome ou no Samsung Internet e
 adicione à tela inicial. A leitura em voz usa as vozes do Android: confira em
 *Configurações › Gerenciamento geral › Texto para voz* se há uma voz em
 português do Brasil instalada.
+
+## Contas para quem vai testar
+
+```bash
+cd /var/www/projetos/LA-Carta
+sudo -u deploy /opt/node24/bin/node ferramentas/usuario.ts criar maria@exemplo.com "Maria Souza"
+sudo -u deploy /opt/node24/bin/node ferramentas/usuario.ts listar
+sudo -u deploy /opt/node24/bin/node ferramentas/usuario.ts senha maria@exemplo.com
+sudo -u deploy /opt/node24/bin/node ferramentas/usuario.ts desativar maria@exemplo.com
+```
+
+A senha sorteada aparece uma vez no terminal; a pessoa troca em **Ajustes**. Cada conta tem
+as próprias marcações, notas e preferências. O aparelho se identifica sozinho (tablet,
+celular ou computador) e o modo pode ser trocado em **Ajustes › Modo de uso**.

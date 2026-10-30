@@ -204,7 +204,7 @@ export function analisar(meta: MetaObra, blocosDaPagina: Bloco[], origem: { url:
   let livres = 0;
   let rubricasNoArtigo = 0;
   let ultimoNumero = 0;
-  let maisRecente = { ano: 0, texto: "" };
+  let maisRecente = { ano: 0, numero: 0, texto: "" };
 
   const unico = (conjunto: Set<string>, id: string, oQue: string): string => {
     if (!conjunto.has(id)) { conjunto.add(id); return id; }
@@ -257,8 +257,11 @@ export function analisar(meta: MetaObra, blocosDaPagina: Bloco[], origem: { url:
     for (const n of notas) {
       const m = /(\d{4})\D*$/.exec(n);
       const ano = m ? Number(m[1]) : 0;
-      if (ano > maisRecente.ano && ano <= new Date().getFullYear() && /Lei|Emenda|Medida|Decreto/i.test(n)) {
-        maisRecente = { ano, texto: n.replace(/^.*?\b(?:pela|pelo)\s+/i, "") };
+      /* no mesmo ano, vale a lei de MAIOR número (a mais recente); "Vide…" não é alteração */
+      const numero = Number((/n[ºo°]\s*([\d.]+)/i.exec(n)?.[1] ?? "0").replace(/\./g, "")) || 0;
+      const maisNova = ano > maisRecente.ano || (ano === maisRecente.ano && numero > maisRecente.numero);
+      if (maisNova && ano <= new Date().getFullYear() && /^(?:Reda[cç][aã]o dada|Inclu[ií]d|Revogad|Acrescid|Renumerad|Alterad)/i.test(n) && /Lei|Emenda|Medida|Decreto/i.test(n)) {
+        maisRecente = { ano, numero, texto: n.replace(/^.*?\b(?:pela|pelo)\s+/i, "") };
       }
     }
     const d: Dispositivo = { id: unico(idsDisp, idBase, "dispositivo"), tipo, rotulo, texto };

@@ -13,7 +13,7 @@ import assert from "node:assert/strict";
 import { blocos, partirPorMarcador, decodificar, entidades } from "../ferramentas/leis/html.ts";
 import { analisar, separarNotas, capitalizar, romano } from "../ferramentas/leis/analisar.ts";
 import { CATALOGO, candidatos } from "../ferramentas/leis/catalogo.ts";
-import { carregarTexto, obras, obra, pagina, dispositivo, acharArtigo, buscar, sumarioLeve, obraDaPagina, categorias } from "../src/dados/texto.ts";
+import { carregarTexto, obras, obra, pagina, dispositivo, acharArtigo, buscar, sumarioLeve, obraDaPagina, categorias, referencia } from "../src/dados/texto.ts";
 
 const META = { id: "zz", sigla: "ZZ", nome: "Lei de Teste", identificacao: "Lei nº 0", categoria: "Penal" };
 const extrair = (html: string) => analisar(META, partirPorMarcador(blocos(html)), { url: "http://x", baixadoEm: "2026-10-04" });
@@ -172,6 +172,14 @@ describe("o Vade Mecum carregado", () => {
     assert.equal(acharArtigo("adct 2")!.pagina.livro, "adct");
     assert.equal(acharArtigo("121-A cp")!.artigo.rotulo, "Art. 121-A");
     assert.match(acharArtigo("art. 3º", "cdc")!.artigo.dispositivos[0]!.texto, /Fornecedor é toda pessoa/);
+  });
+  it("a referência leva o pai: inciso de parágrafo não confunde com o do caput", () => {
+    assert.equal(referencia("cp-art-121-caput"), "Art. 121");
+    assert.equal(referencia("cp-art-121-p2-i1"), "Art. 121, § 2º, I");
+    assert.equal(referencia("cp-art-121-p2-b-i2"), "Art. 121, § 2º-B, II");
+    assert.equal(referencia("cf-art-5-d2"), "Art. 5º, I");
+    assert.equal(referencia("cf-art-5-d30"), "Art. 5º, XXVIII, a)");
+    assert.equal(referencia("nao-existe"), "");
   });
   it("busca no Vade Mecum inteiro e restrita a uma lei", () => {
     const tudo = buscar("legítima defesa");

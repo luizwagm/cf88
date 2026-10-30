@@ -59,6 +59,9 @@ export function icone(nome, tamanho = 20) {
     check: "M5 12l4.5 4.5L19 7",
     mais: "M12 5v14M5 12h14",
     instalar: "M12 4v11M7 10l5 5 5-5M5 19h14",
+    copiar: "M9 9h10v11H9zM5 15V4h10",
+    tres: "M5 12h.01M12 12h.01M19 12h.01",
+    teclado: "M3 7h18v10H3zM7 11h.01M11 11h.01M15 11h.01M8 14h8",
     atualizar: "M20 12a8 8 0 01-14.5 4.6M4 12a8 8 0 0114.5-4.6M18.5 4v4h-4M5.5 20v-4h4",
     baixar: "M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2M12 3v12M7.5 10.5L12 15l4.5-4.5",
     engrenagem: "M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM4 12h2M18 12h2M12 4v2M12 18v2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4",
@@ -172,6 +175,47 @@ export function avisarComAcao(mensagem, rotulo, fn) {
   requestAnimationFrame(() => t.classList.add("visivel"));
   setTimeout(() => { t.classList.remove("visivel"); setTimeout(() => t.remove(), 300); }, 20_000);
 }
+
+/* ---------- Folha de ações ----------
+   No celular, sobe de baixo da tela (o polegar alcança); no computador, com
+   uma âncora, abre ao lado dela como um painel. Uma só aberta por vez.
+   `semFundo` deixa a página tocável por baixo (seleção de texto em curso). */
+let folhaAberta = null;
+export function abrirFolha(conteudo, { ancora = null, aoFechar = null, classe = "", semFundo = false } = {}) {
+  fecharFolha();
+  const flutuante = Boolean(ancora) && document.documentElement.classList.contains("modo-computador");
+  const fundo = flutuante || semFundo ? null : el("div", { classe: "folha-acoes-fundo" });
+  const painel = el("div", { classe: `folha-acoes ${flutuante ? "flutuante" : ""} ${classe}`, role: "dialog" },
+    flutuante ? null : el("span", { classe: "folha-alca", "aria-hidden": "true" }), conteudo);
+  if (fundo) document.body.append(fundo);
+  document.body.append(painel);
+  if (flutuante) {
+    const r = ancora.getBoundingClientRect();
+    const pr = painel.getBoundingClientRect();
+    const esq = r.right + 10 + pr.width < window.innerWidth - 8 ? r.right + 10 : Math.max(8, r.left - pr.width - 10);
+    const topo = Math.max(64, Math.min(window.innerHeight - pr.height - 8, r.top - 12));
+    painel.style.setProperty("left", `${esq}px`);
+    painel.style.setProperty("top", `${topo}px`);
+  }
+  const tecla = (e) => { if (e.key === "Escape") fechar(); };
+  const fora = (e) => { if (!painel.contains(e.target) && !(ancora && (e.target === ancora || ancora.contains(e.target)))) fechar(); };
+  document.addEventListener("keydown", tecla);
+  if (fundo) fundo.addEventListener("click", () => fechar());
+  else setTimeout(() => document.addEventListener("pointerdown", fora, true), 0);
+  requestAnimationFrame(() => { painel.classList.add("aberta"); fundo?.classList.add("aberta"); });
+  function fechar() {
+    if (folhaAberta !== fechar) return;
+    folhaAberta = null;
+    document.removeEventListener("keydown", tecla);
+    document.removeEventListener("pointerdown", fora, true);
+    painel.remove();
+    fundo?.remove();
+    aoFechar?.();
+  }
+  folhaAberta = fechar;
+  return fechar;
+}
+export function fecharFolha() { folhaAberta?.(); }
 
 /* ---------- Modal ---------- */
 export function abrirModal(titulo, corpo, rodape, opcoes = {}) {

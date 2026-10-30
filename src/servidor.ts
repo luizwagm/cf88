@@ -8,7 +8,7 @@ import { log } from "./nucleo/log.ts";
 import { VERSAO } from "./nucleo/versao.ts";
 import { abrirBanco, fecharBanco, banco } from "./dados/bd.ts";
 import { migrar } from "./dados/migrar.ts";
-import { carregarTexto, obras, totalDePaginas } from "./dados/texto.ts";
+import { carregarTexto, obras, totalDePaginas, recarregarSeMudou, infoConteudo } from "./dados/texto.ts";
 import { montarApi } from "./api/index.ts";
 import { ouvir } from "./http/servidor.ts";
 
@@ -17,7 +17,14 @@ async function principal(): Promise<void> {
   console.log(`\n  LA Carta ${VERSAO} — ${config.ambiente} (${config.banco.tipo})\n`);
 
   carregarTexto();
-  log.info("conteúdo carregado", { obras: obras().length, paginas: totalDePaginas() });
+  log.info("conteúdo carregado", { obras: obras().length, paginas: totalDePaginas(), origem: infoConteudo().origem, gerado_em: infoConteudo().gerado_em });
+  /* O serviço diário grava as leis novas em dados/leis; aqui elas entram no
+     ar sem reiniciar (a troca do estado é atômica). */
+  setInterval(() => {
+    const r = recarregarSeMudou();
+    if (r.recarregou) log.info("leis recarregadas", { obras: r.obras, origem: infoConteudo().origem, gerado_em: infoConteudo().gerado_em });
+    if (r.erro) log.erro("falha ao recarregar as leis (segue o texto anterior)", { erro: r.erro });
+  }, 60_000).unref();
 
   await abrirBanco();
   const { aplicadas } = await migrar();

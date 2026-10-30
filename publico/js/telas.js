@@ -6,6 +6,18 @@ import { api, qs } from "./api.js";
 import { el, preencher, icone, avisar, confirmar, fmtRelativo, fmtData, plural, nomeDaCor, ehClara, debounce } from "./ui.js";
 import * as voz from "./voz.js";
 import * as armazem from "./armazem.js";
+import { MODOS, escolhido, detectar, escolherModo, modo } from "./aparelho.js";
+
+/* "a CLT mudou em 28/10: texto de 3 dispositivos" — a diferença entre lei
+   que mudou de verdade e nota de referência nova importa para quem estuda. */
+function descreverAtualizacao(a) {
+  if (a.tipo === "nova") return "entrou no Vade Mecum";
+  const partes = [];
+  if (a.textos) partes.push(`texto alterado em ${plural(a.textos, "dispositivo", "dispositivos")}`);
+  if (a.notas) partes.push(`${plural(a.notas, "nota de referência", "notas de referência")} (vide, ADI…)`);
+  if (a.depois && a.depois !== a.antes) partes.push(`agora até a ${a.depois}`);
+  return partes.join(" · ") || "texto revisto no Planalto";
+}
 import { prefs, salvarPrefs, sumario, sumarioDe, obras, obraAtual, definirObraAtual, baixarObras, irPara, usuarioAtual, atualizarNome, atualizacao, temAtualizacao, verificarAtualizacao, aplicarAtualizacao, aoMudarAtualizacao, versaoApp } from "./app.js";
 
 const numero = (n) => Number(n || 0).toLocaleString("pt-BR");
@@ -83,6 +95,13 @@ export async function telaEstante(container) {
     continuar,
     numeros,
     minhas.length ? el("section", { classe: "categoria" }, el("h3", {}, "Em estudo"), el("div", { classe: "obras-grade" }, ...minhas.map(cartao))) : null,
+    ...(cat.alertas ?? []).map((a) => el("p", { classe: "aviso-lei" }, icone("atualizar", 18), el("span", {}, a))),
+    (cat.atualizacoes ?? []).length ? el("section", { classe: "categoria atualizacoes" },
+      el("h3", {}, "Atualizações do Planalto", el("small", {}, cat.verificado_em ? `conferido ${fmtRelativo(cat.verificado_em)}` : "")),
+      el("div", { classe: "lista-atualizacoes" }, ...cat.atualizacoes.slice(0, 6).map((a) => el("a", { classe: "atualizacao", href: `#/obra/${a.obra_id}` },
+        el("span", { classe: "obra-sigla" }, a.sigla),
+        el("span", { classe: "atualizacao-texto" }, descreverAtualizacao(a)),
+        el("span", { classe: "atualizacao-quando" }, fmtData(a.em)))))) : null,
     el("div", { classe: "biblioteca-cabecalho" }, el("h2", {}, "Biblioteca"), filtro),
     biblioteca,
   ));
@@ -150,8 +169,10 @@ export async function telaObra(container, partes) {
   } catch { /* sem contagens */ }
   const baixadas = new Set(await armazem.obrasBaixadas());
   const primeira = s.paginas[0];
+  const cat = obras();
+  const ultimaDesta = (cat.atualizacoes ?? []).find((a) => a.obra_id === id);
   const fonte = o.url
-    ? [`Texto compilado do Planalto, baixado em ${fmtData(o.baixado_em)}`, o.atualizado_ate ? ` · última alteração incorporada: ${o.atualizado_ate}` : ""].join("")
+    ? [`Texto compilado do Planalto`, o.atualizado_ate ? ` · última alteração incorporada: ${o.atualizado_ate}` : "", cat.verificado_em ? ` · conferido no Planalto ${fmtRelativo(cat.verificado_em)}` : ` · baixado em ${fmtData(o.baixado_em)}`].join("")
     : `${o.fonte} · ${o.atualizado_ate}`;
 
   const botaoBaixar = el("button", { classe: "botao", type: "button" }, icone("baixar", 18), baixadas.has(id) ? "Atualizar cópia offline" : "Baixar esta lei");
@@ -166,6 +187,8 @@ export async function telaObra(container, partes) {
         el("p", { classe: "obra-ident" }, o.identificacao),
         o.ementa ? el("p", { classe: "obra-ementa" }, o.ementa) : null,
         el("p", { classe: "obra-fonte" }, fonte, o.url ? el("a", { href: o.url, target: "_blank", rel: "noopener noreferrer" }, " · ver no Planalto") : null),
+        ultimaDesta ? el("p", { classe: "obra-atualizada" }, icone("atualizar", 16), `Atualizada em ${fmtData(ultimaDesta.em)}: ${descreverAtualizacao(ultimaDesta)}.`) : null,
+        id === "cf" ? (cat.alertas ?? []).filter((a) => a.startsWith("Constituição:")).map((a) => el("p", { classe: "aviso-lei" }, icone("atualizar", 18), el("span", {}, a))) : null,
       ),
     ),
     el("div", { classe: "acoes obra-acoes" },
@@ -337,6 +360,9 @@ function armazemBaixado() {
 
 /* ============================ ajustes ============================ */
 export async function telaAjustes(container) {
+  const seletorModo = el("select", { "aria-label": "Modo de uso" },
+    ...Object.entries(MODOS).map(([valor, rotulo]) => el("option", { value: valor, selected: escolhido() === valor ? true : undefined }, valor === "auto" ? `${rotulo} (detectado: ${MODOS[detectar()].toLowerCase()})` : rotulo)));
+  seletorModo.addEventListener("change", () => { const m = escolherModo(seletorModo.value); avisar(`Modo: ${MODOS[m].toLowerCase()}.`); });
   const p = prefs();
   const eu = usuarioAtual();
   const nome = el("input", { type: "text", value: eu.nome, maxlength: "120" });
@@ -378,6 +404,8 @@ export async function telaAjustes(container) {
     el("div", { classe: "grade", style: "align-items: start" },
       el("div", { classe: "cartao form" },
         el("h2", { style: "font-size:1.1rem" }, "Leitura"),
+        el("label", {}, "Modo de uso neste aparelho", seletorModo),
+        el("p", { style: "margin: -.4rem 0 0; color: var(--tinta-3); font-size: .82rem" }, "Tablet: caneta e estojo. Celular: toque no texto para marcar, anotar e ouvir. Computador: selecione com o mouse (atalhos 1–6, S, R, N, O) ou use o botão ⋯ ao lado de cada trecho."),
         el("label", {}, el("span", {}, "Tamanho do texto · ", tamanhoRotulo), tamanho),
         el("p", { style: "font-family: var(--serifa); font-size: var(--tamanho-texto); margin: 0; line-height: 1.6" }, "Art. 1º A República Federativa do Brasil, formada pela união indissolúvel dos Estados e Municípios e do Distrito Federal…"),
         el("div", { classe: "opcao-toggle" }, el("div", {}, el("b", {}, "Notas de alteração"), el("span", {}, "Mostra, sob cada dispositivo, a lei que deu a redação atual (\u201cRedação dada pela Lei nº…\u201d).")), notas),
